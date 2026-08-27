@@ -5,8 +5,8 @@
     <name>SchedExtWindow</name>
     <message>
         <location filename="../src/schedext-window.ui" line="17"/>
-        <source>CachyOS Configure sched-ext</source>
-        <translation>Configuración de sched-ext de CachyOS</translation>
+        <source>SCX Scheduler Manager</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../src/schedext-window.ui" line="40"/>
@@ -40,11 +40,16 @@
     </message>
     <message>
         <location filename="../src/schedext-window.ui" line="176"/>
+        <source>Cancel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/schedext-window.ui" line="183"/>
         <source>Disable</source>
         <translation>Deshabilitar</translation>
     </message>
     <message>
-        <location filename="../src/schedext-window.ui" line="183"/>
+        <location filename="../src/schedext-window.ui" line="190"/>
         <source>Apply</source>
         <translation>Aplicar</translation>
     </message>
@@ -66,17 +71,17 @@ This is needed for the app to work properly</source>
 Esto es necesario para que la aplicación funcione correctamente</translation>
     </message>
     <message>
-        <location filename="../src/schedext-window-internal.cpp" line="205"/>
+        <location filename="../src/schedext-window-internal.cpp" line="206"/>
         <source>Cannot disable scx_loader</source>
         <translation>Error al deshabilitar scx_loader</translation>
     </message>
     <message>
-        <location filename="../src/schedext-window-internal.cpp" line="223"/>
+        <location filename="../src/schedext-window-internal.cpp" line="224"/>
         <source>Cannot get scx flags from scx_loader configuration!</source>
         <translation>¡Error al obtener los flags de scx desde la configuración de scx_loader!</translation>
     </message>
     <message>
-        <location filename="../src/schedext-window-internal.cpp" line="259"/>
+        <location filename="../src/schedext-window-internal.cpp" line="260"/>
         <source>Cannot set default scx scheduler with mode! Scheduler %1 with mode %2</source>
         <translation>¡Error al establecer el planificador scx por defecto! Planificador %1 con modo %2</translation>
     </message>
