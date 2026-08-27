@@ -33,7 +33,7 @@ build() {
 
 package() {
   cd "$srcdir/$pkgname-$pkgver"
-  cmake --install build --prefix "$pkgdir"
+  cmake --install build --prefix "$pkgdir/usr"
   # Per Arch guidelines, ship the license:
   if [ -f LICENSE ]; then
     install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
