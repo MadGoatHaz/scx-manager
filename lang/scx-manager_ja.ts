@@ -40,7 +40,7 @@
     </message>
     <message>
         <location filename="../src/schedext-window.ui" line="176"/>
-        <source>Close (*scx-man: keep existing &lt;string&gt; here.)</source>
+        <source>Close</source>
         <translation>キャンセル</translation>
     </message>
     <message>
