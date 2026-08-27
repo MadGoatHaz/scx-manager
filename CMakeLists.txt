@@ -170,10 +170,10 @@ install(
 )
 
 install(
-   FILES org.cachyos.scx-manager.desktop
-   DESTINATION ${CMAKE_INSTALL_DATADIR}/applications
+    FILES scx-manager.desktop
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/applications
 )
 install(
-   FILES ${CMAKE_SOURCE_DIR}/org.cachyos.scx-manager.png
-   DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps
+    FILES ${CMAKE_SOURCE_DIR}/scx-manager.svg
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps
 )
