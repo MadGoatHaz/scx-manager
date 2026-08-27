@@ -8,7 +8,7 @@
 
 pkgname=scx-manager
 pkgver=1.15.12
-pkgrel=1
+pkgrel=2
 pkgdesc="Distro-agnostic GUI manager for sched-ext (SCX) schedulers"
 arch=(x86_64)
 url="https://aur.archlinux.org/packages/scx-manager"
@@ -22,7 +22,7 @@ makedepends=(cmake git qt6-base rust)
 # that a kernel with CONFIG_SCHED_EXT enabled is required to run sched-ext schedulers.
 optdepends=('scx-scheds: popular SCX scheduler implementations' 'sched-ext-kernel: kernel with CONFIG_SCHED_EXT enabled (required to run sched-ext schedulers)')
 source=("$pkgname-$pkgver.tar.gz")
-sha256sums=("bfb73c2e96738ef7abf7adf2eafc9bfd6f8684315fc2c490dfc8d9226df8c9f9")
+sha256sums=("1850bd37fb8e2b5ba92c11cd529ac51a4fbc36198cbf2723b80b33192bdda5c9")
 
 build() {
   # Makefiles generator (default). Alternative: -G Ninja (needs ninja makedep).
