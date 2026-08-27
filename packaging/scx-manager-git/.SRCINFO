@@ -1,0 +1,19 @@
+pkgbase = scx-manager
+	pkgdesc = Distro-agnostic GUI manager for sched-ext (SCX) schedulers (git)
+	pkgver = 0
+	pkgrel = 1
+	url = <GIT_REPO_URL>
+	arch = x86_64
+	license = GPL-3.0-or-later
+	makedepends = cmake
+	makedepends = git
+	makedepends = qt6-base
+	makedepends = rust
+	depends = qt6-base
+	depends = polkit
+	depends = scx-tools
+	optdepends = scx-scheds: popular SCX scheduler implementations
+	optdepends = sched-ext-kernel: kernel with CONFIG_SCHED_EXT enabled (required to run sched-ext schedulers)
+	source = scx-manager::git+<GIT_REPO_URL>#branch=main
+
+pkgname = scx-manager

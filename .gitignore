@@ -11,3 +11,6 @@ DEV_LOG.md
 MASTER_LOG.md
 plans/
 .kilo/
+
+# Generated AUR source tarball (recreate: git archive, see packaging/)
+packaging/*/scx-manager-*.tar.gz

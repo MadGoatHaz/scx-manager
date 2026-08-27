@@ -1,0 +1,58 @@
+# Maintainer: <Your Name> <you@example.com>
+# Tracks the public de-branded scx-manager git repository.
+# REPLACE <GIT_REPO_URL> with your published fork URL
+# (e.g. https://github.com/<you>/scx-manager.git)
+#
+# Build generator: CMake default (Makefiles). Ninja is not a makedep here so
+# the package builds on base-devel as-is; if you prefer Ninja, add `ninja` to
+# makedepends and pass -G Ninja to the cmake configure line below.
+
+pkgname=scx-manager
+# pkgver is resolved at build time by pkgver() below (makepkg rewrites this
+# line after the first real build). A non-zero placeholder is required because
+# makepkg >= 7.1 lints an empty pkgver= before pkgver() ever runs.
+pkgver=0
+pkgrel=1
+pkgdesc="Distro-agnostic GUI manager for sched-ext (SCX) schedulers (git)"
+arch=(x86_64)
+url="<GIT_REPO_URL>"
+license=(GPL-3.0-or-later)
+depends=(qt6-base polkit scx-tools)
+# Note: 'cargo' is provided by the 'rust' package on Arch (rust Provides: cargo),
+# so it is not listed separately. Corrosion + CPM are fetched at configure time
+# (git is required for CPM's GitHub fetches).
+makedepends=(cmake git qt6-base rust)
+# 'sched-ext-kernel' is a virtual marker (no such package exists); it documents
+# that a kernel with CONFIG_SCHED_EXT enabled is required to run sched-ext schedulers.
+optdepends=('scx-scheds: popular SCX scheduler implementations' 'sched-ext-kernel: kernel with CONFIG_SCHED_EXT enabled (required to run sched-ext schedulers)')
+_commit=()  # empty tracks branch HEAD
+source=("$pkgname::git+<GIT_REPO_URL>#branch=main")
+sha256sums=()
+
+pkgver() {
+  # Resolves the 7-char short hash of refs/heads/main on the tracked branch.
+  # To pin a specific commit instead, set _commit=<full-hash> above and
+  # replace the ls-remote line with: echo "${_commit:0:7}"
+  local hash
+  hash=$(git ls-remote "$url" refs/heads/main 2>/dev/null | awk '{print substr($1,1,7)}')
+  if [[ -z "$hash" ]]; then
+    echo "pkgver(): cannot resolve commit — replace <GIT_REPO_URL> with the real fork URL first" >&2
+    return 1
+  fi
+  echo "$hash"
+}
+
+build() {
+  # Makefiles generator (default). Alternative: -G Ninja (needs ninja makedep).
+  cd "$srcdir/$pkgname"
+  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+  cmake --build build
+}
+
+package() {
+  cd "$srcdir/$pkgname"
+  cmake --install build --prefix "$pkgdir"
+  if [ -f LICENSE ]; then
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  fi
+}
