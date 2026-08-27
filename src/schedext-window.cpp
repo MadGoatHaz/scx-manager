@@ -40,9 +40,20 @@ void SchedExtWindow::hide() noexcept {
     m_impl->hide();
 }
 
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+// isVisible() reads the m_impl member, whose referent's visibility is mutable state;
+// it is not pure in the "depends only on arguments" sense, so silence the advisory.
+#pragma GCC diagnostic ignored "-Wsuggest-attribute=pure"
+#endif
+
 bool SchedExtWindow::isVisible() const noexcept {
     return m_impl->isVisible();
 }
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 void SchedExtWindow::setParent(QWidget* parent) noexcept {
     m_impl->setParent(parent);
