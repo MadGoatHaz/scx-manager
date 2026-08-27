@@ -119,7 +119,7 @@ SchedExtWindow::SchedExtWindow(QWidget* parent)
         if (loader_config.has_value()) {
             m_scx_config = std::make_unique<scx::loader::Config>(std::move(*loader_config));
         } else {
-            QMessageBox::critical(this, "CachyOS Kernel Manager", tr("Cannot initialize scx_loader configuration"));
+            QMessageBox::critical(this, "SCX Scheduler Manager", tr("Cannot initialize scx_loader configuration"));
             return;
         }
     }
@@ -135,7 +135,7 @@ SchedExtWindow::SchedExtWindow(QWidget* parent)
     if (supported_scheds.has_value()) {
         m_ui->schedext_combo_box->addItems(*supported_scheds);
     } else {
-        QMessageBox::critical(this, "CachyOS Kernel Manager", tr("Cannot get information from scx_loader!\nIs it working?\nThis is needed for the app to work properly"));
+        QMessageBox::critical(this, "SCX Scheduler Manager", tr("Cannot get information from scx_loader!\nIs it working?\nThis is needed for the app to work properly"));
 
         // hide all components which depends on scheduler management
         m_ui->schedext_combo_box->setHidden(true);
@@ -203,7 +203,7 @@ void SchedExtWindow::on_disable() noexcept {
     m_ui->apply_button->setEnabled(false);
 
     if (!m_scx_config->disable_scheduler(m_config_path)) {
-        QMessageBox::critical(this, "CachyOS Kernel Manager", tr("Cannot disable scx_loader"));
+        QMessageBox::critical(this, "SCX Scheduler Manager", tr("Cannot disable scx_loader"));
     }
 
     m_ui->disable_button->setEnabled(true);
@@ -221,7 +221,7 @@ void SchedExtWindow::on_sched_profile_changed() noexcept {
             sched_args << std::move(*scx_flags_for_mode);
         }
     } else {
-        QMessageBox::critical(this, "CachyOS Kernel Manager", tr("Cannot get scx flags from scx_loader configuration!"));
+        QMessageBox::critical(this, "SCX Scheduler Manager", tr("Cannot get scx flags from scx_loader configuration!"));
     }
 
     m_ui->schedext_flags_edit->setText(sched_args.join(' '));
@@ -257,7 +257,7 @@ void SchedExtWindow::on_apply() noexcept {
     const auto& scx_mode         = get_scx_mode_from_str(current_profile);
 
     if (!m_scx_config->apply_scheduler_change(current_selected, scx_mode, extra_flags, m_config_path)) {
-        QMessageBox::critical(this, "CachyOS Kernel Manager", tr("Cannot set default scx scheduler with mode! Scheduler %1 with mode %2").arg(QString::fromStdString(current_selected), QString::fromStdString(current_profile)));
+        QMessageBox::critical(this, "SCX Scheduler Manager", tr("Cannot set default scx scheduler with mode! Scheduler %1 with mode %2").arg(QString::fromStdString(current_selected), QString::fromStdString(current_profile)));
     }
 
     m_ui->disable_button->setEnabled(true);

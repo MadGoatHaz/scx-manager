@@ -14,10 +14,10 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>CachyOS Configure sched-ext</string>
+    <string>SCX Scheduler Manager</string>
   </property>
   <property name="windowIcon">
-   <iconset theme="cachyos-kernel-manager"/>
+    <iconset theme="scx-manager"/>
   </property>
   <widget class="QWidget" name="central_widget">
    <layout class="QVBoxLayout" name="verticalLayout">

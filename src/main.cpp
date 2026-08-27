@@ -102,10 +102,10 @@ auto main(int argc, char** argv) -> std::int32_t {
 #endif
 
     /// 2. Application identification
-    QApplication::setOrganizationName("CachyOS");
-    QApplication::setOrganizationDomain("cachyos.org");
+    QApplication::setOrganizationName("Arch Linux");
+    QApplication::setOrganizationDomain("archlinux.org");
     QApplication::setApplicationName("scx-manager");
-    QApplication::setDesktopFileName("org.cachyos.scx-manager");
+    QApplication::setDesktopFileName("scx-manager");
 
     // Set application attributes
     const QApplication app(argc, argv);
