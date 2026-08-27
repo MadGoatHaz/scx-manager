@@ -14,3 +14,10 @@ plans/
 
 # Generated AUR source tarball (recreate: git archive, see packaging/)
 packaging/*/scx-manager-*.tar.gz
+
+# AUR makepkg build artifacts
+packaging/*/pkg/
+packaging/*/src/
+packaging/*/*.log
+packaging/*/*.sig
+packaging/*/*.pkg.tar.*
