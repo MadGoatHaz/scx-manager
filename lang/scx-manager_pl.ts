@@ -4,11 +4,6 @@
 <context>
     <name>SchedExtWindow</name>
     <message>
-        <location filename="../src/schedext-window.ui" line="17"/>
-        <source>CachyOS Configure sched-ext</source>
-        <translation>CachyOS Skonfiguruj sched-ext</translation>
-    </message>
-    <message>
         <location filename="../src/schedext-window.ui" line="40"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Configure sched-ext scheduler:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;Skonfiguruj planistę sched-ext:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
@@ -34,6 +29,11 @@
         <translation>Aktywny planista sched ext:</translation>
     </message>
     <message>
+        <location filename="../src/schedext-window.ui" line="17"/>
+        <source>SCX Scheduler Manager</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../src/schedext-window.ui" line="122"/>
         <source>Set sched-ext extra scheduler flags:</source>
         <translation>Ustaw dodatkowe flagi planisty:</translation>
@@ -44,14 +44,44 @@
         <translation>Anuluj</translation>
     </message>
     <message>
-        <location filename="../src/schedext-window.ui" line="176"/>
+        <location filename="../src/schedext-window.ui" line="183"/>
         <source>Disable</source>
         <translation>Wyłącz</translation>
     </message>
     <message>
-        <location filename="../src/schedext-window.ui" line="183"/>
+        <location filename="../src/schedext-window.ui" line="190"/>
         <source>Apply</source>
         <translation>Zastosuj</translation>
+    </message>
+</context>
+<context>
+    <name>scxctl::impl::SchedExtWindow</name>
+    <message>
+        <location filename="../src/schedext-window-internal.cpp" line="122"/>
+        <source>Cannot initialize scx_loader configuration</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/schedext-window-internal.cpp" line="138"/>
+        <source>Cannot get information from scx_loader!
+Is it working?
+This is needed for the app to work properly</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/schedext-window-internal.cpp" line="206"/>
+        <source>Cannot disable scx_loader</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/schedext-window-internal.cpp" line="224"/>
+        <source>Cannot get scx flags from scx_loader configuration!</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/schedext-window-internal.cpp" line="260"/>
+        <source>Cannot set default scx scheduler with mode! Scheduler %1 with mode %2</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

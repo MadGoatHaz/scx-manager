@@ -5,8 +5,8 @@
     <name>SchedExtWindow</name>
     <message>
         <location filename="../src/schedext-window.ui" line="17"/>
-        <source>CachyOS Configure sched-ext</source>
-        <translation>CachyOS sched-ext 設定</translation>
+        <source>SCX Scheduler Manager</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../src/schedext-window.ui" line="40"/>
