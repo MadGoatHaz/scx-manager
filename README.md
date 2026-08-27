@@ -1,6 +1,8 @@
 # scx-manager
 Simple GUI for managing sched-ext schedulers via scx_loader.
 
+Ported from the upstream scx-manager project.
+
 Requirements
 ------------
 * C++23 feature required (tested with GCC 14.1.1 and Clang 18)
@@ -18,7 +20,7 @@ sudo pacman -S \
 
 ### Cloning the source code
 ```sh
-git clone https://github.com/cachyos/scx-manager.git
+git clone <scx-manager-repository-url>
 cd scx-manager
 ```
 
@@ -38,3 +40,4 @@ Second, build it:
 
 * [Qt](https://www.qt.io) used for GUI.
 * [A modern formatting library](https://github.com/fmtlib/fmt) used for formatting strings, output and logging.
+* [sched-ext](https://github.com/sched-ext/scx) kernel scheduling interface used by scx_loader.
