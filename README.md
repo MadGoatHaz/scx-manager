@@ -1,7 +1,36 @@
-# scx-manager
-Simple GUI for managing sched-ext schedulers via scx_loader.
+# SCX Scheduler Manager (`scx-manager`)
 
-Ported from the upstream scx-manager project.
+A distro-agnostic Qt GUI to manage sched-ext (SCX) schedulers via the
+`scx_loader` daemon.
+
+## What it does
+
+SCX Scheduler Manager lists the sched-ext schedulers that the running
+`scx_loader` daemon reports as supported (queried over D-Bus,
+`org.scx.Loader`) and lets you activate or deactivate them from a simple
+Qt6 interface. Scheduler loading is elevated through `pkexec`, so the
+app itself runs as your normal user. If the daemon is not present, the
+app degrades gracefully instead of failing.
+
+## Features
+
+- Lists all schedulers the running `scx_loader` supports
+- Activate / deactivate schedulers with polkit elevation (`pkexec`)
+- Graceful handling when `scx_loader` is absent ("Cannot get information
+  from scx_loader!")
+- Localized UI strings (Qt Linguist `.ts` files under `lang/`)
+- Neutral desktop integration: `scx-manager.desktop` + hicolor
+  `scx-manager.svg` icon
+- Warning-clean from-scratch Release build
+
+## Requirements
+
+- A **sched-ext capable kernel** — `CONFIG_SCHED_EXT` enabled
+- **scx-tools** — provides the `scx_loader` daemon (`org.scx.Loader`
+  D-Bus service)
+- **scx-scheds** — the scheduler binaries
+- **Qt6** — to build (plus CMake and a C++23 compiler; tested with
+  GCC 14.1.1 and Clang 18)
 
 ## Available schedulers
 
@@ -31,41 +60,48 @@ Notes:
 - `scx_chaos` and `scx_layered` are also installed via **scx-scheds** but are not in the current scx_loader supported set, so they do not appear in the manager.
 - More schedulers are available across the [sched-ext](https://github.com/sched-ext/scx) ecosystem; install the **scx-scheds** package for the common set.
 
-Requirements
-------------
-* C++23 feature required (tested with GCC 14.1.1 and Clang 18)
-Any compiler which support C++23 standard should work.
+## Building from source
 
-######
-## Installing from source
-
-This is tested on Arch Linux, but *any* recent Arch Linux based system with latest C++23 compiler should do:
+Configure and build with CMake (Unix Makefiles generator by default;
+Ninja is supported as an alternative):
 
 ```sh
-sudo pacman -S \
-    base-devel cmake make qt6-base qt6-tools polkit-qt6 python
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release   # add -G Ninja if preferred
+cmake --build build
 ```
 
-### Cloning the source code
-```sh
-git clone <scx-manager-repository-url>
-cd scx-manager
-```
+`configure.sh` wraps the configure step. The `fmt` dependency is
+fetched via CPM, built header-only, and configured with
+`FMT_SYSTEM_HEADERS=ON`, so it adds no build warnings. The Rust
+component (`scx-rustlib`) is built by Corrosion during the CMake build;
+a Rust toolchain (`rust` package, provides `cargo`) is required.
 
-### Building and Configuring
-To build, first, configure it(if you intend to install it globally, you
-might also want `--prefix=/usr`):
-```sh
-./configure.sh --prefix=/usr/local
-```
-Second, build it:
-```sh
-./build.sh
-```
+## Installing (Arch / AUR)
 
+The AUR package builds from source at install time. The release package
+(`scx-manager`) ships the release source tarball; a `scx-manager-git`
+package will point at the public source repository. Runtime
+dependencies: `qt6-base`, `polkit`, `scx-tools`. Build
+dependencies: `cmake`, `git`, `qt6-base`, `rust`.
 
-### Libraries used in this project
+## License & provenance
 
-* [Qt](https://www.qt.io) used for GUI.
-* [A modern formatting library](https://github.com/fmtlib/fmt) used for formatting strings, output and logging.
-* [sched-ext](https://github.com/sched-ext/scx) kernel scheduling interface used by scx_loader.
+Licensed under **GPL-3.0-or-later** (see `LICENSE`).
+Ported from the upstream scx-manager project. Upstream copyright and
+provenance headers are intentionally retained in the source files — they
+are attribution, not branding.
+
+## Layout
+
+The repository is organized for a GitHub fork of the upstream project:
+
+- `src/` — C++23 / Qt6 application sources
+- `scx-rustlib/` — Rust crate (cxx bridge client, D-Bus via zbus)
+- `cmake/` — CMake helpers (CPM, warning flags, sanitizers, install
+  config)
+- `include/` — public headers
+- `lang/` — Qt translation files (`.ts`)
+- `packaging/` — AUR packages (`scx-manager/`, `scx-manager-git/`)
+- root — `CMakeLists.txt`, `configure.sh`, `scx-manager.desktop`,
+  `scx-manager.svg`, `LICENSE`, `README.md`, `BLUEPRINT.md`,
+  `HANDOVER.md`
