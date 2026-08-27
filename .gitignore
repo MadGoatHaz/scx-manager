@@ -1,44 +1,13 @@
-*.DS_Store
-*.dump
-*.ctu-info
-.cache
-.idea
-build
-build.sh
-cmake-build-release
-cmake-build-debug
-CMakeLists.txt.user
-subprojects/fmt
-subprojects/packagecache
-config-option-lib/target
-
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
+# Build artifacts
+build/
+target/
 *.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
 *.a
+*.so
+*.so.*
 
-# Executables
-*.exe
-*.out
-*.app
+# Rolling dev state (not part of the AUR package)
+DEV_LOG.md
+MASTER_LOG.md
+plans/
+.kilo/
