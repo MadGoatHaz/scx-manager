@@ -1,23 +1,50 @@
-# Build artifacts
+# ===== Build artifacts =====
 build/
 target/
+CMakeCache.txt
+CMakeFiles/
 *.o
 *.a
 *.so
 *.so.*
+*.dylib
 
-# Rolling dev state (not part of the AUR package)
-DEV_LOG.md
-MASTER_LOG.md
-plans/
-.kilo/
+# ===== Private keys / secrets — NEVER upload =====
+AUR KIT/
+aur-publish/
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+id_ecdsa
+id_ecdsa.pub
+id_dsa
+*.pem
+*.asc
+*.ppk
+*private*
+*secret*
+.gnupg/
+known_hosts
 
-# Generated AUR source tarball (recreate: git archive, see packaging/)
-packaging/*/scx-manager-*.tar.gz
-
-# AUR makepkg build artifacts
+# ===== AUR makepkg build artifacts =====
 packaging/*/pkg/
 packaging/*/src/
 packaging/*/*.log
 packaging/*/*.sig
 packaging/*/*.pkg.tar.*
+packaging/*/scx-manager-*.tar.gz
+
+# ===== Dev rolling state (not part of the package) =====
+DEV_LOG.md
+MASTER_LOG.md
+plans/
+.kilo/
+
+# ===== Editor / OS =====
+.vscode/
+.idea/
+*~
+.swp
+.DS_Store
+Thumbs.db
