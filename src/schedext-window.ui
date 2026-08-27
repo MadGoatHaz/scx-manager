@@ -171,11 +171,11 @@
         </spacer>
        </item>
         <item>
-         <widget class="QPushButton" name="cancel_button">
-          <property name="text">
-           <string>Close (*scx-man: keep existing &lt;string&gt; here.)</string>
-          </property>
-         </widget>
+          <widget class="QPushButton" name="cancel_button">
+           <property name="text">
+            <string>Close</string>
+           </property>
+          </widget>
         </item>
         <item>
          <widget class="QPushButton" name="disable_button">
