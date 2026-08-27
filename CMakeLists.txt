@@ -27,6 +27,11 @@ include(CPM)
 
 find_package(Qt6 COMPONENTS Widgets LinguistTools REQUIRED)
 
+# Mark fmt's own headers as SYSTEM includes so that its internal advisory
+# -Wsuggest-final-{types,methods} diagnostics (format.h/format-inl.h) do not
+# surface in the build. Project sources keep the full warning set; only the
+# CPM-fetched dependency's headers are exempted.
+set(FMT_SYSTEM_HEADERS ON)
 CPMAddPackage(
   NAME fmt
   GITHUB_REPOSITORY fmtlib/fmt
