@@ -86,10 +86,25 @@ dependencies: `cmake`, `git`, `qt6-base`, `rust`.
 
 ## License & provenance
 
-Licensed under **GPL-3.0-or-later** (see `LICENSE`).
-Ported from the upstream scx-manager project. Upstream copyright and
-provenance headers are intentionally retained in the source files — they
-are attribution, not branding.
+SCX Scheduler Manager (`scx-manager`) is an independent,
+distribution-agnostic downstream rebrand and port of the upstream
+[CachyOS scx-manager](https://github.com/CachyOS/scx-manager) project.
+
+**License:** GPL-3.0-or-later; the full license text is in `LICENSE`.
+
+**History & attribution:** this repository preserves the complete
+upstream git history — every original commit and author attribution
+from CachyOS/scx-manager is intact, and the upstream copyright and
+provenance headers inside the source files are deliberately retained
+(not stripped during de-branding); they are attribution, not branding.
+
+**Relationship:** this project is community-maintained and is **not**
+affiliated with, sponsored by, or endorsed by CachyOS. Upstream
+retains copyright over its original contributions; all modifications in
+this repository are released under the same GPL-3.0-or-later license.
+
+**Credits:** original work by Vladislav Nepogodin and the upstream
+contributors (see `git log` for full attribution).
 
 ## Layout
 
