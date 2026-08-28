@@ -1,21 +1,20 @@
-# Maintainer: <Your Name> <you@example.com>
-# Tracks the public de-branded scx-manager git repository.
-# REPLACE <GIT_REPO_URL> with your published fork URL
-# (e.g. https://github.com/<you>/scx-manager.git)
+# Maintainer: MadGoat <ghazlett@gmail.com>
+# Tracks the public de-branded scx-manager git repository
+# (https://github.com/MadGoatHaz/scx-manager, branch main).
 #
 # Build generator: CMake default (Makefiles). Ninja is not a makedep here so
 # the package builds on base-devel as-is; if you prefer Ninja, add `ninja` to
 # makedepends and pass -G Ninja to the cmake configure line below.
 
-pkgname=scx-manager
+pkgname=scx-manager-git
 # pkgver is resolved at build time by pkgver() below (makepkg rewrites this
 # line after the first real build). A non-zero placeholder is required because
 # makepkg >= 7.1 lints an empty pkgver= before pkgver() ever runs.
-pkgver=0
+pkgver=491baef
 pkgrel=1
 pkgdesc="Distro-agnostic GUI manager for sched-ext (SCX) schedulers (git)"
 arch=(x86_64)
-url="<GIT_REPO_URL>"
+url="https://github.com/MadGoatHaz/scx-manager"
 license=(GPL-3.0-or-later)
 depends=(qt6-base polkit scx-tools)
 # Note: 'cargo' is provided by the 'rust' package on Arch (rust Provides: cargo),
@@ -26,8 +25,8 @@ makedepends=(cmake git qt6-base rust)
 # that a kernel with CONFIG_SCHED_EXT enabled is required to run sched-ext schedulers.
 optdepends=('scx-scheds: popular SCX scheduler implementations' 'sched-ext-kernel: kernel with CONFIG_SCHED_EXT enabled (required to run sched-ext schedulers)')
 _commit=()  # empty tracks branch HEAD
-source=("$pkgname::git+<GIT_REPO_URL>#branch=main")
-sha256sums=()
+source=("$pkgname::git+https://github.com/MadGoatHaz/scx-manager#branch=main")
+sha256sums=('SKIP')  # one SKIP per source entry; git sources are not checksummed
 
 pkgver() {
   # Resolves the 7-char short hash of refs/heads/main on the tracked branch.
@@ -36,7 +35,7 @@ pkgver() {
   local hash
   hash=$(git ls-remote "$url" refs/heads/main 2>/dev/null | awk '{print substr($1,1,7)}')
   if [[ -z "$hash" ]]; then
-    echo "pkgver(): cannot resolve commit — replace <GIT_REPO_URL> with the real fork URL first" >&2
+    echo "pkgver(): cannot resolve commit from $url" >&2
     return 1
   fi
   echo "$hash"
