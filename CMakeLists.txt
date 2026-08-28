@@ -143,6 +143,34 @@ target_link_libraries(test_scheduler_metadata
 )
 add_test(NAME test_scheduler_metadata COMMAND test_scheduler_metadata)
 
+# Offscreen check for the in-app scheduler info card (Chunk 2): drives the
+# card fill API for every scheduler x profile combination in the metadata,
+# and (when scx_loader is available on the host) the real window, verifying
+# reactivity, placement, the fixed band height, and zero clipping.
+# QT_QPA_PLATFORM=offscreen is forced both by the test itself and here.
+add_executable(test_info_panel
+    tests/test_info_panel.cpp
+    scx_manager_resources.qrc
+)
+target_include_directories(test_info_panel
+    PRIVATE
+    ${PROJECT_SOURCE_DIR}/src
+    # The internal header pulls in the generated ui_schedext-window.h, which
+    # lives in scxctl-ui's AUTOUIC directory (not exported to other targets).
+    ${CMAKE_BINARY_DIR}/scxctl-ui_autogen/include
+    # ...and scx_utils.hpp pulls in the corrosion-generated rust/cxx.h.
+    ${CMAKE_BINARY_DIR}/corrosion_generated/cxxbridge/scx-lib-cxxbridge/include
+)
+target_link_libraries(test_info_panel
+    PRIVATE
+    project_warnings
+    project_options
+    scxctl-ui
+    Qt6::Widgets
+)
+add_test(NAME test_info_panel COMMAND test_info_panel)
+set_tests_properties(test_info_panel PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
 ##
 ## INSTALL
 ## install header files, generate and install cmake config files for find_package()

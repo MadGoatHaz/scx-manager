@@ -42,13 +42,18 @@ void SchedExtWindow::hide() noexcept {
 
 #if defined(__GNUC__)
 #pragma GCC diagnostic push
-// isVisible() reads the m_impl member, whose referent's visibility is mutable state;
-// it is not pure in the "depends only on arguments" sense, so silence the advisory.
+// isVisible() and nativeWidget() read the m_impl member, whose referent's
+// visibility is mutable state; they are not pure in the "depends only on
+// arguments" sense, so silence the advisory.
 #pragma GCC diagnostic ignored "-Wsuggest-attribute=pure"
 #endif
 
 bool SchedExtWindow::isVisible() const noexcept {
     return m_impl->isVisible();
+}
+
+QWidget* SchedExtWindow::nativeWidget() noexcept {
+    return m_impl;
 }
 
 #if defined(__GNUC__)

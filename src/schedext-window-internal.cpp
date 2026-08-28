@@ -42,9 +42,15 @@
 #pragma GCC diagnostic ignored "-Wconversion"
 #endif
 
+#include <QFont>
+#include <QFrame>
+#include <QHBoxLayout>
+#include <QLabel>
 #include <QMessageBox>
 #include <QProcess>
 #include <QStringList>
+#include <QVBoxLayout>
+#include <QWidget>
 
 #if defined(__clang__)
 #pragma clang diagnostic pop
@@ -105,11 +111,327 @@ constexpr auto get_scx_mode_from_str(std::string_view scx_mode) noexcept -> scx:
 
 }  // namespace
 
+// The project builds with hidden symbol visibility (see
+// cmake/StandardProjectSettings.cmake) so that shared libraries only export
+// intended API symbols. The card build / fill helpers below are used by the
+// offscreen test (tests/test_info_panel.cpp) outside the library, so every
+// out-of-line definition is explicitly marked for export, mirroring
+// scheduler-metadata.cpp.
+#if defined(__GNUC__) || defined(__clang__)
+#define SCXINFO_EXPORT __attribute__((visibility("default")))
+#else
+#define SCXINFO_EXPORT
+#endif
+
+namespace {
+
+/// Minimal left-to-right wrapping layout used for the hardware / workload
+/// chip rows. Chips that do not fit on one line wrap to the next;
+/// heightForWidth() reports the wrapped height so the outer layout (and the
+/// no-clipping measurement) accounts for wrapping. Item ownership stays with
+/// QLayout; the vector below is re-created on every chip rebuild, so it can
+/// never hold a dangling item pointer.
+class FlowLayout final : public QLayout {
+ public:
+    explicit FlowLayout(int h_spacing = 6, int v_spacing = 6)
+      : QLayout(), m_h_spacing(h_spacing), m_v_spacing(v_spacing) {}
+
+    ~FlowLayout() override = default;
+
+    void addItem(QLayoutItem* item) override { m_items.push_back(item); }
+
+    int count() const override { return static_cast<int>(m_items.size()); }
+
+    QLayoutItem* itemAt(int index) const override {
+        if (index < 0 || index >= static_cast<int>(m_items.size())) {
+            return nullptr;
+        }
+        return m_items[static_cast<std::size_t>(index)];
+    }
+
+    QLayoutItem* takeAt(int index) override {
+        if (index < 0 || index >= static_cast<int>(m_items.size())) {
+            return nullptr;
+        }
+        QLayoutItem* item = m_items[static_cast<std::size_t>(index)];
+        m_items.erase(m_items.begin() + static_cast<std::size_t>(index));
+        return item;
+    }
+
+    bool hasHeightForWidth() const override { return true; }
+    int heightForWidth(int width) const override { return compute_height(width); }
+
+    QSize minimumSize() const override {
+        QSize size;
+        for (const QLayoutItem* item : m_items) {
+            size = size.expandedTo(item->minimumSize());
+        }
+        return size;
+    }
+
+    QSize sizeHint() const override { return minimumSize(); }
+
+    void setGeometry(const QRect& rect) override { do_layout(rect, true); }
+
+ private:
+    auto compute_height(int width) const -> int {
+        if (m_items.empty()) {
+            return 0;
+        }
+        int y      = 0;
+        int row_x  = 0;
+        int row_h  = 0;
+        int height = 0;
+        for (const QLayoutItem* item : m_items) {
+            const int item_w = item->sizeHint().width();
+            if (row_x > 0 && row_x + item_w > width) {
+                y += row_h + m_v_spacing;
+                row_x = 0;
+                row_h = 0;
+            }
+            row_x += item_w + m_h_spacing;
+            row_h = std::max(row_h, item->sizeHint().height());
+        }
+        height = y + row_h;
+        return height;
+    }
+
+    void do_layout(const QRect& rect, bool save) {
+        int left  = 0;
+        int top   = 0;
+        int x     = left;
+        int y     = top;
+        int row_h = 0;
+        for (QLayoutItem* item : m_items) {
+            const int item_w = item->sizeHint().width();
+            if (x > left && x + item_w > rect.right()) {
+                y += row_h + m_v_spacing;
+                x = left;
+                row_h = 0;
+            }
+            if (save) {
+                item->setGeometry(QRect(QPoint(x, y), item->sizeHint()));
+            }
+            x += item_w + m_h_spacing;
+            row_h = std::max(row_h, item->sizeHint().height());
+        }
+    }
+
+    std::vector<QLayoutItem*> m_items;
+    int m_h_spacing = 0;
+    int m_v_spacing = 0;
+};
+
+auto make_card_font(const QFont& base, bool bold, bool italic, double delta_point) -> QFont {
+    QFont font(base);
+    font.setBold(bold);
+    font.setItalic(italic);
+    // Skip the delta for pixel-sized fonts (pointSizeF() == -1) so we never
+    // end up with a nonsensical point size.
+    if (font.pointSizeF() > 0.0) {
+        font.setPointSizeF(font.pointSizeF() + delta_point);
+    }
+    return font;
+}
+
+/// Replaces the chip row's contents with one pill per entry in `labels`.
+/// The previous flow layout is destroyed first (QLayout frees its items),
+/// then any leftover chip widgets, so the new layout starts clean.
+auto rebuild_chip_row(QWidget* row, const QStringList& labels) -> void {
+    if (row->layout() != nullptr) {
+        delete row->layout();
+    }
+    const auto old_chips = row->findChildren<QLabel*>(QString{}, Qt::FindDirectChildrenOnly);
+    for (QLabel* chip : old_chips) {
+        delete chip;
+    }
+    auto* flow = new FlowLayout();
+    row->setLayout(flow);
+    for (const QString& label : labels) {
+        auto* chip = new QLabel(label, row);
+        chip->setObjectName("info_chip");
+        chip->setFont(make_card_font(chip->font(), false, false, -1.0f));
+        flow->addWidget(chip);
+    }
+}
+
+}  // namespace
+
 namespace scxctl::impl {
+
+SCXINFO_EXPORT auto build_info_card(QFrame* card) -> InfoPanel {
+    InfoPanel panel;
+    if (card == nullptr) {
+        return panel;
+    }
+
+    auto* body = new QVBoxLayout(card);
+    body->setContentsMargins(12, 10, 12, 10);
+    body->setSpacing(6);
+
+    // 1. Scheduler title: bold, +2pt.
+    panel.title = new QLabel(card);
+    panel.title->setObjectName("info_sched_title");
+    panel.title->setFont(make_card_font(card->font(), true, false, 2.0f));
+    panel.title->setVisible(false);
+    body->addWidget(panel.title);
+
+    // 2. Tagline: muted, italic.
+    panel.tagline = new QLabel(card);
+    panel.tagline->setObjectName("info_sched_tagline");
+    panel.tagline->setFont(make_card_font(card->font(), false, true, 0.0f));
+    panel.tagline->setVisible(false);
+    body->addWidget(panel.tagline);
+
+    // 3. Technical summary: word-wrapped body text.
+    panel.summary = new QLabel(card);
+    panel.summary->setObjectName("info_sched_summary");
+    panel.summary->setWordWrap(true);
+    panel.summary->setVisible(false);
+    body->addWidget(panel.summary);
+
+    // 4. Hardware chips row (wrapping).
+    panel.hw_row = new QWidget(card);
+    panel.hw_row->setObjectName("info_hw_row");
+    panel.hw_row->setLayout(new FlowLayout());
+    panel.hw_row->setVisible(false);
+    body->addWidget(panel.hw_row);
+
+    // 5. Workload chips row (wrapping).
+    panel.wl_row = new QWidget(card);
+    panel.wl_row->setObjectName("info_wl_row");
+    panel.wl_row->setLayout(new FlowLayout());
+    panel.wl_row->setVisible(false);
+    body->addWidget(panel.wl_row);
+
+    // 6. Thin divider between scheduler info and profile info.
+    panel.divider = new QWidget(card);
+    panel.divider->setObjectName("info_divider");
+    panel.divider->setFixedHeight(1);
+    panel.divider->setVisible(false);
+    body->addWidget(panel.divider);
+
+    // 7. Active profile section: "Active Profile" header + bold name,
+    //    then the (word-wrapped) description.
+    panel.profile_section = new QWidget(card);
+    panel.profile_section->setObjectName("info_profile_section");
+    auto* profile_body = new QVBoxLayout(panel.profile_section);
+    profile_body->setContentsMargins(0, 0, 0, 0);
+    profile_body->setSpacing(4);
+
+    auto* header_row   = new QWidget(panel.profile_section);
+    auto* header_layout = new QHBoxLayout(header_row);
+    header_layout->setContentsMargins(0, 0, 0, 0);
+    header_layout->setSpacing(6);
+    auto* header = new QLabel(QObject::tr("Active Profile"), header_row);
+    header->setObjectName("info_profile_header");
+    header->setFont(make_card_font(card->font(), false, false, -1.0f));
+    header_layout->addWidget(header);
+    panel.profile_name = new QLabel(header_row);
+    panel.profile_name->setObjectName("info_profile_name");
+    panel.profile_name->setFont(make_card_font(card->font(), true, false, 0.0f));
+    header_layout->addWidget(panel.profile_name);
+    header_layout->addStretch(1);
+    profile_body->addWidget(header_row);
+
+    panel.profile_desc = new QLabel(panel.profile_section);
+    panel.profile_desc->setObjectName("info_profile_desc");
+    panel.profile_desc->setWordWrap(true);
+    profile_body->addWidget(panel.profile_desc);
+    panel.profile_section->setVisible(false);
+    body->addWidget(panel.profile_section);
+
+    // 8. Fallback notice for schedulers without metadata (hidden by default).
+    panel.fallback = new QLabel(QObject::tr("Custom scheduler detected — detailed metadata is unavailable for this scheduler."), card);
+    panel.fallback->setObjectName("info_fallback");
+    panel.fallback->setWordWrap(true);
+    panel.fallback->setFont(make_card_font(card->font(), false, true, 0.0f));
+    panel.fallback->setVisible(false);
+    body->addWidget(panel.fallback);
+
+    // Self-contained dark stylesheet, scoped to this card so the rest of the
+    // window keeps whatever theme the platform provides.
+    card->setStyleSheet(QStringLiteral(R"qss(
+        #scheduler_info_card {
+            background-color: #232433;
+            border: 1px solid #3b3d52;
+            border-radius: 8px;
+        }
+        #info_sched_title { color: #f2f3f8; }
+        #info_sched_tagline { color: #a6a9c0; }
+        #info_sched_summary { color: #c8cbdd; }
+        #info_chip {
+            background-color: #2f3149;
+            border: 1px solid #4a4d70;
+            border-radius: 8px;
+            padding: 3px 8px;
+            color: #c3c6e0;
+        }
+        #info_divider { background-color: #3b3d52; border: none; }
+        #info_profile_header { color: #8a8da8; }
+        #info_profile_name { color: #e8e9f2; }
+        #info_profile_desc { color: #c8cbdd; }
+        #info_fallback { color: #9a9db5; }
+    )qss"));
+
+    return panel;
+}
+
+SCXINFO_EXPORT void apply_scheduler_info(InfoPanel& panel, const scxctl::SchedulerInfo& info, bool found) {
+    if (!panel.ready()) {
+        return;
+    }
+    if (found) {
+        panel.title->setText(info.title);
+        panel.tagline->setText(info.tagline);
+        panel.summary->setText(info.summary);
+        panel.title->setVisible(true);
+        panel.tagline->setVisible(true);
+        panel.summary->setVisible(true);
+        rebuild_chip_row(panel.hw_row, info.hardware);
+        panel.hw_row->setVisible(!info.hardware.isEmpty());
+        rebuild_chip_row(panel.wl_row, info.workloads);
+        panel.wl_row->setVisible(!info.workloads.isEmpty());
+        panel.fallback->setVisible(false);
+    } else {
+        panel.title->clear();
+        panel.tagline->clear();
+        panel.summary->clear();
+        panel.title->setVisible(false);
+        panel.tagline->setVisible(false);
+        panel.summary->setVisible(false);
+        rebuild_chip_row(panel.hw_row, QStringList{});
+        rebuild_chip_row(panel.wl_row, QStringList{});
+        panel.hw_row->setVisible(false);
+        panel.wl_row->setVisible(false);
+        panel.fallback->setVisible(true);
+    }
+}
+
+SCXINFO_EXPORT void apply_profile_info(InfoPanel& panel, const QString& profile_name, const scxctl::ProfileInfo& info, bool visible) {
+    if (!panel.ready()) {
+        return;
+    }
+    if (!visible || !info.found || info.description.isEmpty()) {
+        panel.profile_section->setVisible(false);
+        panel.divider->setVisible(false);
+        return;
+    }
+    panel.profile_name->setText(profile_name);
+    panel.profile_desc->setText(info.description);
+    panel.profile_section->setVisible(true);
+    panel.divider->setVisible(true);
+}
 
 SchedExtWindow::SchedExtWindow(QWidget* parent)
   : QMainWindow(parent), m_sched_timer(new QTimer(this)) {
     m_ui->setupUi(this);
+
+    // Build the fixed-height scheduler info band (between the flags row and
+    // the bottom buttons) before any early return below, so the card always
+    // exists; it stays in its neutral state when scx_loader is unavailable.
+    m_info_panel = build_info_card(m_ui->scheduler_info_card);
+    m_ui->scheduler_info_card->setFixedHeight(kInfoCardFixedHeight);
 
     setAttribute(Qt::WA_NativeWindow);
     setWindowFlags(Qt::Window);  // for the close, min and max buttons
@@ -225,6 +547,7 @@ void SchedExtWindow::on_sched_profile_changed() noexcept {
     }
 
     m_ui->schedext_flags_edit->setText(sched_args.join(' '));
+    update_profile_section();
 }
 
 void SchedExtWindow::on_sched_changed() noexcept {
@@ -244,6 +567,22 @@ void SchedExtWindow::on_sched_changed() noexcept {
         m_ui->schedext_profile_combo_box->setVisible(false);
     }
     on_sched_profile_changed();
+    update_info_panel();
+}
+
+void SchedExtWindow::update_info_panel() noexcept {
+    const auto& name = m_ui->schedext_combo_box->currentText();
+    const auto& info = m_metadata.scheduler(name);
+    apply_scheduler_info(m_info_panel, info, m_metadata.isValid() && info.found);
+    update_profile_section();
+}
+
+void SchedExtWindow::update_profile_section() noexcept {
+    const bool combo_visible = m_ui->schedext_profile_combo_box->isVisible();
+    const auto& profile_name = m_ui->schedext_profile_combo_box->currentText();
+    const auto& info = m_metadata.profile(profile_name, m_ui->schedext_combo_box->currentText());
+    apply_profile_info(m_info_panel, profile_name, info,
+        combo_visible && m_metadata.isValid() && info.found && !info.description.isEmpty());
 }
 
 void SchedExtWindow::on_apply() noexcept {

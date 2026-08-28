@@ -69,6 +69,11 @@ class SCHEDEXT_EXPORT SchedExtWindow final {
     bool isVisible() const noexcept;
     void setParent(QWidget* parent) noexcept;
 
+    /// The underlying native main window (the pimpl'd QMainWindow).
+    /// Lets embedders and offscreen tests reach the real widget hierarchy
+    /// without exposing the implementation class.
+    QWidget* nativeWidget() noexcept;
+
  private:
     impl::SchedExtWindow* m_impl = nullptr;
 };
