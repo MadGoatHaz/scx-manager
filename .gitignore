@@ -11,6 +11,7 @@ CMakeFiles/
 
 # ===== Private keys / secrets — NEVER upload =====
 AUR KIT/
+Docs/
 aur-publish/
 id_rsa
 id_rsa.pub
