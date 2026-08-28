@@ -142,7 +142,13 @@ class FlowLayout final : public QLayout {
 
     int count() const override { return static_cast<int>(m_items.size()); }
 
-    QLayoutItem* itemAt(int index) const override {
+    // Marked pure: const, no I/O, no allocation, only reads the (const) item
+    // list via `this`, so it has no observable side effects. The bounds check
+    // also guarantees m_items[] is only reached in-range (so even libstdc++'s
+    // _GLIBCXX_ASSERTIONS abort path is unreachable here). This suppresses
+    // -Wsuggest-attribute=pure in Release builds compiled with makepkg
+    // CXXFLAGS (-Wp,-D_GLIBCXX_ASSERTIONS).
+    QLayoutItem* itemAt(int index) const override Q_DECL_PURE_FUNCTION {
         if (index < 0 || index >= static_cast<int>(m_items.size())) {
             return nullptr;
         }
