@@ -77,12 +77,14 @@ add_custom_command(
 qt_add_executable(${PROJECT_NAME}
     src/main.cpp
     "${CMAKE_BINARY_DIR}/scx_manager_locale.qrc"
+    scx_manager_resources.qrc
 )
 add_library(scxctl-ui SHARED
     src/scx_utils.hpp src/scx_utils.cpp
     src/schedext-window-internal.hpp src/schedext-window-internal.cpp
     "${SCXCTLUI_INCLUDE_BUILD_DIR}/schedext-window.hpp" src/schedext-window.cpp
     src/schedext-window.ui
+    src/scheduler-metadata.hpp src/scheduler-metadata.cpp
 )
 add_library(scxctl::scxctl-ui ALIAS scxctl-ui)
 target_compile_definitions(scxctl-ui PRIVATE SCHEDEXT_LIB)
@@ -119,6 +121,27 @@ if(ENABLE_UNITY)
    # Add for any project you want to apply unity builds for
    set_target_properties(${PROJECT_NAME} PROPERTIES UNITY_BUILD ON)
 endif()
+
+##
+## Tests
+##
+enable_testing()
+add_executable(test_scheduler_metadata
+    tests/test_scheduler_metadata.cpp
+    scx_manager_resources.qrc
+)
+target_include_directories(test_scheduler_metadata
+    PRIVATE
+    ${PROJECT_SOURCE_DIR}/src
+)
+target_link_libraries(test_scheduler_metadata
+    PRIVATE
+    project_warnings
+    project_options
+    scxctl-ui
+    Qt6::Core
+)
+add_test(NAME test_scheduler_metadata COMMAND test_scheduler_metadata)
 
 ##
 ## INSTALL

@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="/">
+    <file alias="scheduler-metadata.json">resources/scheduler-metadata.json</file>
+  </qresource>
+</RCC>
