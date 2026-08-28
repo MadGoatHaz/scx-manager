@@ -79,6 +79,10 @@ qt_add_executable(${PROJECT_NAME}
     "${CMAKE_BINARY_DIR}/scx_manager_locale.qrc"
     scx_manager_resources.qrc
 )
+# Installed binary must find libscxctl-ui.so in <prefix>/lib (sibling of
+# bin/). $ORIGIN/../lib is prefix-agnostic: works for /usr/local dev
+# installs and /usr package (pacman/AUR) installs alike.
+set_target_properties(scx-manager PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
 add_library(scxctl-ui SHARED
     src/scx_utils.hpp src/scx_utils.cpp
     src/schedext-window-internal.hpp src/schedext-window-internal.cpp
