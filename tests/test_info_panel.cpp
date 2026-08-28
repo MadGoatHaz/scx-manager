@@ -149,6 +149,8 @@ int main(int argc, char** argv) {
                 scxctl::impl::apply_profile_info(panel, profile, profile_info, true);
                 check(panel.profile_section->isVisible(),
                       QStringLiteral("tier1: %1/%2 profile section visible").arg(name, profile));
+                check(panel.divider->isVisible(),
+                      QStringLiteral("tier1: %1/%2 divider visible with profile section").arg(name, profile));
                 check(!panel.profile_name->text().isEmpty(),
                       QStringLiteral("tier1: %1/%2 profile name visible").arg(name, profile));
                 check(!panel.profile_desc->text().isEmpty(),
@@ -156,11 +158,31 @@ int main(int argc, char** argv) {
                 measure();
             }
 
-            // Profile combo hidden for this scheduler -> section hidden.
+            // Profile combo hidden for this scheduler -> section + divider hidden.
             scxctl::impl::apply_profile_info(panel, QString{}, scxctl::ProfileInfo{}, false);
             check(!panel.profile_section->isVisible(),
                   QStringLiteral("tier1: %1 profile section hidden when combo hidden").arg(name));
+            check(!panel.divider->isVisible(),
+                  QStringLiteral("tier1: %1 divider hidden when combo hidden").arg(name));
             measure();
+
+            // Visible combo but the profile lookup failed (found=false) ->
+            // the section and divider must stay hidden (defensive path the
+            // real window hits when metadata is invalid/incomplete).
+            scxctl::impl::apply_profile_info(panel, "Gaming", scxctl::ProfileInfo{}, true);
+            check(!panel.profile_section->isVisible(),
+                  QStringLiteral("tier1: %1 profile section hidden when lookup found=false").arg(name));
+            check(!panel.divider->isVisible(),
+                  QStringLiteral("tier1: %1 divider hidden when lookup found=false").arg(name));
+
+            // Found lookup but an empty description -> hidden gracefully too.
+            scxctl::ProfileInfo empty_desc;
+            empty_desc.found = true;
+            scxctl::impl::apply_profile_info(panel, "Gaming", empty_desc, true);
+            check(!panel.profile_section->isVisible(),
+                  QStringLiteral("tier1: %1 profile section hidden when description empty").arg(name));
+            check(!panel.divider->isVisible(),
+                  QStringLiteral("tier1: %1 divider hidden when description empty").arg(name));
         }
 
         // Unlisted scheduler: fields cleared, chips hidden, fallback shown.
@@ -180,6 +202,17 @@ int main(int argc, char** argv) {
         const auto specific_profile = metadata.profile("Gaming", "scx_lavd");
         check(generic_profile.found && specific_profile.found && specific_profile.description != generic_profile.description,
               "tier1: profile description resolves the per-scheduler override");
+    }
+
+    // Null card: build_info_card must return a non-ready panel, and the fill
+    // helpers must no-op without dereferencing anything (documented contract:
+    // "never crashes").
+    {
+        auto empty_panel = scxctl::impl::build_info_card(nullptr);
+        check(!empty_panel.ready(), "tier1: build_info_card(nullptr) returns a non-ready panel");
+        scxctl::impl::apply_scheduler_info(empty_panel, metadata.scheduler("scx_lavd"), true);
+        scxctl::impl::apply_profile_info(empty_panel, "Gaming", scxctl::ProfileInfo{}, true);
+        check(true, "tier1: fill helpers no-op on a non-ready panel (no crash)");
     }
     check(kInfoCardFixedHeight >= tier1_max_required,
           QStringLiteral("tier1: fixed band height %1px covers worst-case content %2px at design width %3px")

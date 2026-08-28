@@ -88,6 +88,11 @@ int main() {
     check(specific.found && !specific.description.isEmpty() && specific.description != generic.description,
           "profile(Gaming, scx_lavd) resolves its byScheduler override");
 
+    // 6. Unknown profile falls back gracefully (found=false, empty description).
+    check(!metadata.profile("Nonexistent", "scx_lavd").found, "profile(Nonexistent, scx_lavd).found == false");
+    check(metadata.profile("Nonexistent", "scx_lavd").description.isEmpty(),
+          "profile(Nonexistent, scx_lavd) description empty");
+
     if (g_failures > 0) {
         std::printf("RESULT: FAILED (%d of %d checks failed)\n", g_failures, g_checks);
         return EXIT_FAILURE;
