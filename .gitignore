@@ -39,8 +39,11 @@ packaging/*/*.pkg.tar.*
 packaging/*/scx-manager-*.tar.gz
 
 # ===== Dev rolling state (not part of the package) =====
+# internal dev docs — local only
 DEV_LOG.md
 MASTER_LOG.md
+HANDOVER.md
+BLUEPRINT.md
 plans/
 .kilo/
 

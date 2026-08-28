@@ -118,5 +118,4 @@ The repository is organized for a GitHub fork of the upstream project:
 - `lang/` — Qt translation files (`.ts`)
 - `packaging/` — AUR packages (`scx-manager/`, `scx-manager-git/`)
 - root — `CMakeLists.txt`, `configure.sh`, `scx-manager.desktop`,
-  `scx-manager.svg`, `LICENSE`, `README.md`, `BLUEPRINT.md`,
-  `HANDOVER.md`
+  `scx-manager.svg`, `LICENSE`, `README.md`
