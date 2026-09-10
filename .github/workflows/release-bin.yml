@@ -1,0 +1,303 @@
+name: Release (prebuilt bin)
+
+# ============================================================================
+# scx-manager-bin: precompiled AUR -bin artifact pipeline
+# ----------------------------------------------------------------------------
+# PURPOSE
+#   Build scx-manager once per annotated release tag (and on demand via
+#   workflow_dispatch — how an already-released tag is backfilled with the
+#   bin artifact without a new app release) in the same archlinux:base-devel
+#   container the project CI already uses (.github/workflows/build.yml:21),
+#   stage the install tree with DESTDIR, and publish:
+#
+#       scx-manager-<ver>-x86_64.tar.zst   (tar root = `usr/`)
+#       SHA256SUMS                          (checksum of the tarball)
+#
+#   to the GitHub release for that tag (created if missing), alongside the
+#   existing source-release asset scx-manager-<ver>.tar.gz.
+#
+#   These are the checksum-pinned `source=` artifacts of the AUR
+#   scx-manager-bin package (packaging/scx-manager-bin/PKGBUILD): the -bin
+#   PKGBUILD downloads + extracts them, so AUR users install without
+#   compiling (no cmake/cargo/CPM network fetches in the user's chroot).
+#   The tarball root is `usr/` so a plain extraction into $pkgdir yields
+#   the full FHS tree.
+#
+# TOOLCHAIN PIN — byte-parity with the documented AUR source build
+#   Compiler  = GCC (system default in base-devel). CC/CXX are NOT
+#               overridden and clang/llvm/libc++ are NOT installed:
+#               build.yml's clang/mold/ninja Debug-CI path
+#               (build.yml:27,30-38) is deliberately not reused.
+#   Linker    = GNU ld (system default). cmake/Linker.cmake leaves
+#               ENABLE_USER_LINKER=OFF, so no -fuse-ld is passed and mold
+#               is not installed.
+#   Generator = Unix Makefiles — CMake's default here: `make` is installed
+#               and `ninja` is not (the verify step fails loudly if this
+#               ever drifts). No -G is passed, keeping the invocation
+#               byte-identical to the source PKGBUILD's build()
+#               (packaging/scx-manager/PKGBUILD:28-37).
+#   Flags     = Release + -ffat-lto-objects, mirroring
+#               packaging/scx-manager/PKGBUILD:31-32 line-for-line, so the
+#               prebuilt binary matches what the documented AUR source
+#               build produces (no-op unless the environment enables LTO,
+#               in which case required — archlinux.org/todo/lto-fat-objects/).
+#
+# NEVER DELETE
+#   The published artifacts are the AUR package's `source=` (checksum-
+#   pinned). Deleting a release's tar.zst + SHA256SUMS pair makes
+#   scx-manager-bin uninstallable for every user with no recovery path.
+#   Keep every release's pair forever.
+# ============================================================================
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: >-
+          Release tag to build + publish (e.g. v1.15.12). The dispatch
+          path is how an already-released tag is backfilled with the bin
+          artifact without a new app release.
+        required: true
+        default: 'v1.15.12'
+
+permissions:
+  contents: write
+
+jobs:
+  release-bin:
+    name: Build + publish prebuilt bin
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve tag + version
+        id: ver
+        env:
+          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+        run: |
+          set -eu
+          # Tag source: the pushed tag (github.ref_name) or the
+          # workflow_dispatch `tag` input (the backfill path).
+          TAG="${TAG:-}"
+          # <ver> = the tag without the leading v (v1.15.12 -> 1.15.12).
+          VERSION="${TAG#v}"
+          # Fallback (tag unavailable, or not a version): the CMakeLists
+          # project(... VERSION ...) — the source of truth for this
+          # tree's app version.
+          case "${VERSION}" in
+            [0-9]*) ;;
+            *) VERSION="$(grep -A2 '^project(' CMakeLists.txt | grep -oE '[0-9]+(\.[0-9]+)+' | head -n1)" ;;
+          esac
+          if [ -z "${VERSION}" ]; then
+            echo "::error::No version resolvable (tag='${TAG}', CMakeLists fallback empty)"
+            exit 1
+          fi
+          echo "tag=${TAG:-<none>} version=${VERSION}"
+          echo "TAG=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
+        shell: bash
+
+      - name: Install build deps (source PKGBUILD makedepends + zstd + audit packages)
+        run: |
+          set -eu
+          # Mirrors the source package's makedepends
+          # (packaging/scx-manager/PKGBUILD:20) exactly: cmake git
+          # qt6-tools rust (qt6-base is pulled in transitively via
+          # qt6-tools, as it is for the source package). Plus zstd (the
+          # tarball archiver) and polkit + scx-tools (both official
+          # `extra`; installed so the audit step records their real
+          # versions — the runtime-floor source for the -bin PKGBUILD's
+          # depends). This is NOT build.yml's list: clang/mold/llvm/
+          # ninja are deliberately absent so the toolchain stays GCC +
+          # GNU ld + Unix Makefiles (see header). And NO `gh`: gh is
+          # AUR-only on Arch and comes from the pinned static binary in
+          # the next step.
+          pacman -Syu --noconfirm cmake make git rust qt6-tools zstd polkit scx-tools
+        shell: bash
+
+      - name: Install gh CLI (pinned static binary — AUR-only on Arch)
+        run: |
+          set -eu
+          # gh is AUR-only on Arch: the official repos that the
+          # archlinux:base-devel container carries no `gh` package, so
+          # it cannot be pacman-installed. Install the pinned static
+          # binary from the official cli/cli GitHub releases instead.
+          # Hardcode the version — never "latest". In GitHub Actions,
+          # gh authenticates via GH_TOKEN (job env above) with
+          # permissions: contents: write — no separate auth step.
+          GH_VERSION=2.100.0
+          install -d /usr/local/bin
+          curl -sSL -o "/tmp/gh_${GH_VERSION}_linux_amd64.tar.gz" \
+            "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_amd64.tar.gz"
+          # Extract only bin/gh into /usr/local/bin (strip the version
+          # dir + the bin/ segment), then clean up the tarball.
+          tar -xzf "/tmp/gh_${GH_VERSION}_linux_amd64.tar.gz" \
+            -C /usr/local/bin --strip-components=2 "gh_${GH_VERSION}_linux_amd64/bin/gh"
+          rm -f "/tmp/gh_${GH_VERSION}_linux_amd64.tar.gz"
+          # Verify the pinned version landed and is on PATH (fail
+          # loudly so a bad release URL/version cannot silently pass).
+          GH_OUT="$(gh --version)"
+          echo "${GH_OUT}"
+          echo "${GH_OUT}" | grep -q "^gh version ${GH_VERSION} " || {
+            echo "::error::gh version mismatch (expected ${GH_VERSION})"
+            exit 1
+          }
+        shell: bash
+
+      - name: Build (Release, fat LTO — mirrors packaging/scx-manager/PKGBUILD:28-37)
+        run: |
+          set -eu
+          # Fat LTO objects so an LTO-enabled environment can strip
+          # static archives, exactly as the source PKGBUILD does
+          # (PKGBUILD:31-32; archlinux.org/todo/lto-fat-objects/).
+          export CFLAGS="${CFLAGS:+${CFLAGS} }-ffat-lto-objects"
+          export CXXFLAGS="${CXXFLAGS:+${CXXFLAGS} }-ffat-lto-objects"
+          # Toolchain = system defaults: GCC + GNU ld + Unix Makefiles.
+          # No CC/CXX override, no -fuse-ld, no -G (ninja is not
+          # installed, so Unix Makefiles is CMake's default generator).
+          # Byte-identical configure line to the source PKGBUILD:35.
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build -j"$(nproc)"
+        shell: bash
+
+      - name: Verify toolchain (GCC + GNU ld + Unix Makefiles)
+        run: |
+          set -eu
+          # Guard against environment drift: the generator must be the
+          # documented AUR build's (Unix Makefiles) and the compiler
+          # must be a GCC default. Fails loudly if ninja ever appears in
+          # the container and CMake would pick it, or if the default
+          # compiler changes.
+          grep -q '^CMAKE_GENERATOR:INTERNAL=Unix Makefiles$' build/CMakeCache.txt
+          grep -E '^CMAKE_(C|CXX)_COMPILER:' build/CMakeCache.txt
+          echo "toolchain verified: Unix Makefiles + $(sed -n 's/^CMAKE_CXX_COMPILER:.*=//p' build/CMakeCache.txt)"
+        shell: bash
+
+      - name: Stage install tree + package tarball (mirrors PKGBUILD:39-45)
+        env:
+          VERSION: ${{ steps.ver.outputs.VERSION }}
+        run: |
+          set -eu
+          STAGE="$(mktemp -d /tmp/scxm-stage.XXXXXX)"
+          # DESTDIR correctly prepends the staging dir to every
+          # destination (relative AND absolute). All of scx-manager's
+          # CMake install destinations are GNUInstallDirs-relative
+          # (cmake/StandardProjectSettings.cmake:79-81), so a bare
+          # `--prefix /usr` would suffice; DESTDIR is kept as a double
+          # safeguard and yields the same layout as the source
+          # PKGBUILD's `cmake --install build --prefix "$pkgdir/usr"`.
+          DESTDIR="${STAGE}" cmake --install build --prefix /usr
+          # Ship the project license (PKGBUILD:43-45).
+          install -Dm644 LICENSE "${STAGE}/usr/share/licenses/scx-manager/LICENSE"
+
+          # Tarball root = `usr/` so a plain extraction into an AUR
+          # $pkgdir yields the full FHS tree (the -bin package()).
+          # Name is distinct from the source-release asset
+          # scx-manager-<ver>.tar.gz — both coexist on the same release.
+          tar -C "${STAGE}" -cf - usr | zstd -T0 > "scx-manager-${VERSION}-x86_64.tar.zst"
+          sha256sum "scx-manager-${VERSION}-x86_64.tar.zst" > SHA256SUMS
+
+          echo "staged tree:"
+          find "${STAGE}/usr" -maxdepth 2 | sort
+          ls -l "scx-manager-${VERSION}-x86_64.tar.zst" SHA256SUMS
+          cat SHA256SUMS
+        shell: bash
+
+      - name: Collect build-environment audit
+        run: |
+          set -eu
+          # Per-release ABI record: the toolchain + runtime-library
+          # versions this binary was built/linked against, so every
+          # release's build environment is auditable and the -bin
+          # PKGBUILD's depends floors can be re-captured from it
+          # (plans/PLAN.md §7 item 3).
+          BIN="build/scx-manager"
+          LIB="build/libscxctl-ui.so"
+          test -x "${BIN}"
+          test -e "${LIB}"
+          {
+            echo
+            echo "## Build audit (release-bin workflow, auto-generated)"
+            echo
+            echo "Container: archlinux:base-devel — toolchain GCC + GNU ld + Unix Makefiles (no clang/mold/ninja)."
+            echo
+            echo '```'
+            echo "cmake:     $(cmake --version | head -n1)"
+            echo "gcc:       $(gcc --version | head -n1)"
+            echo "rustc:     $(rustc --version)"
+            echo "qt6-base:  $(pacman -Qi qt6-base  | awk -F': ' '/^Version/ {print $2}')"
+            echo "polkit:    $(pacman -Qi polkit    | awk -F': ' '/^Version/ {print $2}')"
+            echo "scx-tools: $(pacman -Qi scx-tools | awk -F': ' '/^Version/ {print $2}')"
+            echo "glibc:     $(ldd --version | head -n1)"
+            echo "ldd ${BIN}:"
+            ldd "${BIN}" | grep -E 'libQt6|libscxctl|libstdc\+\+|libgcc_s|libc\.so'
+            echo "ldd ${LIB}:"
+            ldd "${LIB}" | grep -E 'libstdc\+\+|libgcc_s|libc\.so'
+            echo '```'
+          } > build-audit.md
+          cat build-audit.md
+        shell: bash
+
+      - name: Publish to GitHub release (create if missing)
+        env:
+          TAG: ${{ steps.ver.outputs.TAG }}
+          VERSION: ${{ steps.ver.outputs.VERSION }}
+        run: |
+          set -eu
+          # Always explicit: a fork's bare `gh` resolves upstream.
+          REPO="MadGoatHaz/scx-manager"
+          TARBALL="scx-manager-${VERSION}-x86_64.tar.zst"
+          AUDIT="$(cat build-audit.md)"
+
+          # Existence check: one `gh release view` call capturing the
+          # body, with the diagnostic kept (2>/tmp/relerr) and never
+          # swallowed — a lookup failure must not silently masquerade as
+          # "release missing". If a release actually exists, the
+          # missing-release branch fails loudly (gh release create will
+          # not double-create the taken tag), so a re-run lands on the
+          # exists branch.
+          if BODY="$(gh release view "${TAG}" --repo "${REPO}" --json body --jq .body 2>/tmp/relerr)"; then
+            RELEASE_EXISTS=true
+          else
+            RELEASE_EXISTS=false
+            BODY=""
+            echo "::warning::gh release view ${TAG} failed (diagnostic below); treating as missing-release"
+            cat /tmp/relerr
+          fi
+
+          # Release notes = the existing body (if any) + the audit
+          # section (build-audit.md opens with a blank line = the
+          # separator).
+          NOTES="${AUDIT}"
+          if [ -n "${BODY}" ]; then
+            NOTES="$(printf "%s\n%s" "${BODY}" "${AUDIT}")"
+          fi
+
+          if [ "${RELEASE_EXISTS}" = true ]; then
+            # Release exists (normal tag push / idempotent re-run):
+            # attach both artifacts first (--clobber re-uploads
+            # same-named assets only, so a re-run after a failed
+            # publish is safe and the source .tar.gz asset is
+            # untouched), then set the notes (existing body preserved
+            # + audit appended).
+            gh release upload "${TAG}" "${TARBALL}" SHA256SUMS --repo "${REPO}" --clobber
+            gh release edit "${TAG}" --repo "${REPO}" --notes "${NOTES}"
+            echo "Published ${TARBALL} + SHA256SUMS on release ${TAG} (clobber); notes = existing body + audit"
+          else
+            # No release yet (backfill of a tag without a release):
+            # create it with the audit notes and attach both artifacts
+            # in one call. --verify-tag aborts loudly if the tag is
+            # missing (no auto-created tag from the default branch).
+            gh release create "${TAG}" "${TARBALL}" SHA256SUMS \
+              --repo "${REPO}" --verify-tag \
+              --notes "${NOTES}"
+            echo "Created release ${TAG} with ${TARBALL} + SHA256SUMS"
+          fi
+        shell: bash
