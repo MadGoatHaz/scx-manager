@@ -284,7 +284,7 @@ Runtime:
 - **`scx-tools`** (official Arch `extra`) — provides the `scx_loader` daemon (the `org.scx.Loader` D-Bus service) and `scxctl`, and pulls in **`scx-scheds`** (the scheduler binaries).
 - **`qt6-base`** and **`polkit`** — plus a polkit agent available in your graphical session to present the approval dialog.
 
-Building from source additionally needs a C++23 compiler (GCC 14+ or Clang 18), Qt6, CMake ≥ 3.20, Rust, and git — see the README's [Building from source](../README.md#building-from-source).
+Building from source additionally needs a C++23 compiler (GCC 14+ or Clang 18), Qt6, CMake ≥ 3.20, Rust, and git — see the README's [Building from source](../README.md#from-source).
 
 ## Installation options
 
