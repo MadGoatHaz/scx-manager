@@ -4,8 +4,8 @@ Manage sched-ext (SCX) schedulers from a clean Qt6 desktop app.
 
 [![Build](https://github.com/MadGoatHaz/scx-manager/actions/workflows/build.yml/badge.svg)](https://github.com/MadGoatHaz/scx-manager/actions/workflows/build.yml)
 [![Checks](https://github.com/MadGoatHaz/scx-manager/actions/workflows/checks.yml/badge.svg)](https://github.com/MadGoatHaz/scx-manager/actions/workflows/checks.yml)
-[![AUR version](https://img.shields.io/aur/version/scx-manager.svg)](https://aur.archlinux.org/packages/scx-manager)
-[![AUR version](https://img.shields.io/badge/AUR-scx--manager--bin--1.15.12--1-blue.svg)](https://aur.archlinux.org/packages/scx-manager-bin)
+[![AUR version](https://img.shields.io/aur/version/scx-manager.svg?label=scx-manager)](https://aur.archlinux.org/packages/scx-manager)
+[![AUR version](https://img.shields.io/aur/version/scx-manager-bin.svg?label=scx-manager-bin)](https://aur.archlinux.org/packages/scx-manager-bin)
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue)](LICENSE)
 
 scx-manager lists the sched-ext schedulers that the running `scx_loader` daemon reports as supported (queried over D-Bus, `org.scx.Loader`, via `scx-tools`) and lets you activate or deactivate them with one of five tuning profiles. Scheduler loading is elevated through `pkexec`, so the app itself always runs as your normal user. If the daemon is not present, the app degrades gracefully — a critical dialog, and it stays alive.
