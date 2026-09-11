@@ -165,7 +165,7 @@ ctest --test-dir build
 
 scx-manager is licensed under the [GNU General Public License v3.0 or later](LICENSE) — the full license text is in `LICENSE`.
 
-scx-manager is an independent, distribution-agnostic downstream rebrand and port of the upstream [CachyOS scx-manager](https://github.com/CachyOS/scx-manager) project.
+scx-manager is a fork of the upstream [CachyOS scx-manager](https://github.com/CachyOS/scx-manager) project (GitHub fork, this repository) and a distribution-agnostic rebrand and port of it. The pre-fork standalone mirror — same history, and the v1.15.12 release as origin of record — is archived at [MadGoatHaz/scx-manager-legacy](https://github.com/MadGoatHaz/scx-manager-legacy).
 
 **History & attribution** — this repository preserves the complete upstream git history: every original commit and author attribution from CachyOS/scx-manager is intact, and the upstream copyright and provenance headers inside the source files are deliberately retained (not stripped during de-branding). They are attribution, not branding.
 
