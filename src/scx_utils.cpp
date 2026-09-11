@@ -18,13 +18,13 @@
 
 #include "scx_utils.hpp"
 
-#if defined(__clang__)
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wold-style-cast"
 #pragma clang diagnostic ignored "-Wdollar-in-identifier-extension"
 #pragma clang diagnostic ignored "-Wsign-conversion"
 #pragma clang diagnostic ignored "-Wdeprecated-this-capture"
-#elif defined(__GNUC__)
+#elifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wnull-dereference"
 #pragma GCC diagnostic ignored "-Wuseless-cast"
@@ -37,9 +37,9 @@
 
 #include "scx-lib-cxxbridge/lib.h"
 
-#if defined(__clang__)
+#ifdef __clang__
 #pragma clang diagnostic pop
-#elif defined(__GNUC__)
+#elifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
 
@@ -56,7 +56,7 @@ auto convert_rust_vec_string(auto&& rust_vec) -> std::vector<std::string> {
     return res_vec;
 }
 
-auto convert_std_vec_into_stringlist(std::vector<std::string>&& std_vec) -> QStringList {
+auto convert_std_vec_into_stringlist(const std::vector<std::string>& std_vec) -> QStringList {
     QStringList flags;
     flags.reserve(static_cast<qsizetype>(std_vec.size()));
     for (auto&& vec_el : std_vec) {
