@@ -171,7 +171,7 @@ scx-manager is an independent, distribution-agnostic downstream rebrand and port
 
 **Relationship** — this project is community-maintained and is **not** affiliated with, sponsored by, or endorsed by CachyOS. Upstream retains copyright over its original contributions; all modifications in this repository are released under the same GPL-3.0-or-later license.
 
-**Credits** — original work by Vladislav Nepogodin and the upstream contributors (see `git log` for full attribution).
+**Credits** — the original code is the work of Vladislav Nepogodin and the upstream [CachyOS/scx-manager](https://github.com/CachyOS/scx-manager) project, on which this repository is based. This project's modifications are by its maintainer. Upstream authors appear in `git log` (and GitHub's contributors list) because the complete upstream history is preserved — that attribution belongs to the original project, not to this one.
 
 ## Layout
 
