@@ -19,7 +19,7 @@
 #ifndef SCHEDEXT_WINDOW_HPP_
 #define SCHEDEXT_WINDOW_HPP_
 
-#if defined(__clang__)
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-conversion"
 #pragma clang diagnostic ignored "-Wfloat-conversion"
@@ -27,7 +27,7 @@
 #pragma clang diagnostic ignored "-Wimplicit-int-float-conversion"
 #pragma clang diagnostic ignored "-Wdeprecated-enum-enum-conversion"
 #pragma clang diagnostic ignored "-Wshorten-64-to-32"
-#elif defined(__GNUC__)
+#elifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wuseless-cast"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
@@ -39,12 +39,12 @@
 
 #include <QtCore/QtGlobal>
 
-#if defined(__clang__)
+#ifdef __clang__
 #pragma clang diagnostic pop
-#elif defined(__GNUC__)
+#elifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
-#if defined(SCHEDEXT_LIB)
+#ifdef SCHEDEXT_LIB
 #define SCHEDEXT_EXPORT Q_DECL_EXPORT
 #else
 #define SCHEDEXT_EXPORT Q_DECL_IMPORT
@@ -63,10 +63,16 @@ class SCHEDEXT_EXPORT SchedExtWindow final {
     explicit SchedExtWindow(QWidget* parent = nullptr);
     ~SchedExtWindow();
 
+    // Non-copyable pimpl; movable — create_schedext_window returns by value, so Q_DISABLE_COPY_MOVE is rejected.
+    SchedExtWindow(const SchedExtWindow&)                = delete;
+    SchedExtWindow& operator=(const SchedExtWindow&)     = delete;
+    SchedExtWindow(SchedExtWindow&&) noexcept            = default;
+    SchedExtWindow& operator=(SchedExtWindow&&) noexcept = default;
+
     // very minimal and basic exposed func
     void show() noexcept;
     void hide() noexcept;
-    bool isVisible() const noexcept;
+    [[nodiscard]] bool isVisible() const noexcept;
     void setParent(QWidget* parent) noexcept;
 
     /// The underlying native main window (the pimpl'd QMainWindow).
