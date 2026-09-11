@@ -2,7 +2,7 @@
 
 This guide explains how scx-manager fits into the sched-ext (SCX) tool stack, what each of the 13 documented schedulers does, the five tuning profiles, the system requirements, the installation options, and how to troubleshoot common problems.
 
-The project README ([../README.md](../README.md)) covers the feature overview, building from source, license & provenance, and repository layout.
+The project README ([../README.md](../README.md)) covers the feature overview, building from source, and repository layout.
 
 Contents:
 
