@@ -50,6 +50,7 @@ Checks: '-*,
          -readability-uppercase-literal-suffix,
          -readability-use-anyofallof'
 FormatStyle: 'file'
+HeaderFilterRegex: '(^|/)(src|tests|include/scx-manager)/.*'
 
 WarningsAsErrors: '*'
 
