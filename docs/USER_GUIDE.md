@@ -92,6 +92,8 @@ Derived from scx_rustland but runs the engine entirely in in-kernel eBPF (a thin
 
 *Network-inspired deficit round robin for smooth gaming.*
 
+> **Note:** upstream v1.16.0 removed `scx_cake`'s per-profile tuning presets — when the daemon reports it, the app lists it and renders this catalog entry, shown without per-profile tuning (the profile dropdown is hidden for it).
+
 Adapts the network CAKE queue's Deficit Round Robin++ (DRR++) to CPU threads via a 4-tier classification driven by an EWMA of runtime duration (Critical <100us, Interactive <2ms, Frame <8ms, Bulk >=8ms) with 10% deadband hysteresis. Avoids global atomics using per-CPU BSS with MESI cache-line isolation, kernel-delegated idle selection, and per-LLC DSQ sharding. Author: RitzDaCat.
 
 - **Hardware:** AMD X3D, AMD multi-CCD, Intel P-E hybrid
@@ -193,7 +195,7 @@ Multi-domain hybrid: the execution path runs in kernel BPF doing fast round-robi
 
 Five profiles select the tuning applied to whichever scheduler is active: **Auto**, **Gaming**, **Powersave**, **Lowlatency**, and **Server**.
 
-The profile dropdown is offered for the six schedulers that expose per-profile tuning presets in the UI — `scx_bpfland`, `scx_cake`, `scx_cosmos`, `scx_lavd`, `scx_p2dq`, `scx_tickless` — and is hidden for the others. Selecting a scheduler + profile fills the flags field with the arguments the daemon resolves for that combination; you may edit the field to add extra flags before pressing Apply. The card's "Active Profile" section shows the per-scheduler variant from the catalog when one is defined for the selected scheduler, and the generic profile description otherwise.
+The profile dropdown is offered for the five schedulers that expose per-profile tuning presets in the UI — `scx_bpfland`, `scx_cosmos`, `scx_lavd`, `scx_p2dq`, `scx_tickless` — and is hidden for the others (including `scx_cake`, whose presets were removed upstream in v1.16.0). Selecting a scheduler + profile fills the flags field with the arguments the daemon resolves for that combination; you may edit the field to add extra flags before pressing Apply. The card's "Active Profile" section shows the per-scheduler variant from the catalog when one is defined for the selected scheduler, and the generic profile description otherwise.
 
 ### Auto
 
@@ -219,7 +221,6 @@ Per-scheduler behavior:
 |---|---|
 | `scx_lavd` | Enables LAVD's performance mode with a pinned 500 us slice for steady frame pacing. |
 | `scx_bpfland` | Runs BPFland in performance mode with wakeup preemption for responsive interactive threads. |
-| `scx_cake` | Selects CAKE's gaming profile for interactive frame delivery. |
 | `scx_cosmos` | Raises Cosmos' slice to 700 us for smoother interactive performance. |
 | `scx_p2dq` | Enables P2DQ task slicing and performance scheduling mode for low-latency dispatch. |
 | `scx_tickless` | Applies Tickless' non-standard gaming frequency and slice settings. Not recommended for interactive desktop use. |
@@ -234,7 +235,6 @@ Per-scheduler behavior:
 |---|---|
 | `scx_lavd` | Switches LAVD to powersave mode with a pinned 500 us slice. |
 | `scx_bpfland` | Runs BPFland in powersave mode with a 20000 us slice and lowered interactivity thresholds. |
-| `scx_cake` | Selects CAKE's battery profile for energy-efficient dispatch. |
 | `scx_cosmos` | Runs Cosmos in powersave CPU mode. |
 | `scx_p2dq` | Switches P2DQ to efficiency scheduling mode. |
 | `scx_tickless` | Lowers Tickless' housekeeping cadence to reduce wakeups and energy use. |
@@ -249,7 +249,6 @@ Per-scheduler behavior:
 |---|---|
 | `scx_lavd` | Enables LAVD's performance mode with a pinned 500 us slice for minimal latency. |
 | `scx_bpfland` | Runs BPFland in performance mode with wakeup preemption. |
-| `scx_cake` | Selects CAKE's esports profile for minimal sojourn latency. |
 | `scx_cosmos` | Raises Cosmos' slice to 700 us with performance mode and wakeup preemption. |
 | `scx_p2dq` | Enables P2DQ yield-on-idle and task-slice flags for fast dispatch. |
 | `scx_tickless` | Applies Tickless' lower-latency frequency and slice settings. |
@@ -267,7 +266,7 @@ Per-scheduler behavior:
 | `scx_p2dq` | Enables P2DQ keep-running behavior to keep loaded cores busy. |
 | `scx_tickless` | Sets Tickless' housekeeping frequency for steady server operation. |
 
-> The `scx_beerland` and `scx_pandemonium` Auto variants above are documented in the catalog for reference; the UI offers the profile selector only for the six profile-aware schedulers, so those two always run with their default behavior in the app.
+> The `scx_beerland` and `scx_pandemonium` Auto variants above are documented in the catalog for reference; the UI offers the profile selector only for the five profile-aware schedulers, so those two always run with their default behavior in the app.
 
 ## Requirements
 
@@ -303,7 +302,7 @@ Three package flavors install the same application — they conflict with each o
 
 | Entry | Build model | Install |
 |-------|-------------|---------|
-| `scx-manager-bin` | Precompiled x86_64 binary — zero build dependencies (no cmake, no cargo, no CPM fetches) | `yay -S scx-manager-bin` |
+| [`scx-manager-bin`](https://aur.archlinux.org/packages/scx-manager-bin) | Precompiled x86_64 binary — zero build dependencies (no cmake, no cargo, no CPM fetches) | `yay -S scx-manager-bin` |
 | [`scx-manager`](https://aur.archlinux.org/packages/scx-manager) | Source build in your AUR chroot (full build toolchain) | `yay -S scx-manager` |
 | [`scx-manager-git`](https://github.com/MadGoatHaz/scx-manager/tree/main/packaging/scx-manager-git) | Rolling build of the `main` branch (AUR submission pending — build from the repo) | `makepkg -si` in `packaging/scx-manager-git/` |
 
@@ -350,7 +349,7 @@ If the checks in [Requirements](#requirements) show `CONFIG_SCHED_EXT` missing o
 
 ### The daemon answers but the app cannot talk to it (API mismatch)
 
-The bridge is built against the `scx_loader` 1.1.x D-Bus API (the `scx_loader` 1.1.2 crate). A much older daemon may fail to answer the supported-schedulers/current-scheduler queries; update `scx-tools` to the current version.
+The bridge is built against the `scx_loader` 1.1.x D-Bus API (the `scx_loader` 1.1.3 crate). A much older daemon may fail to answer the supported-schedulers/current-scheduler queries; update `scx-tools` to the current version.
 
 ## The sched-ext ecosystem
 
