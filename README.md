@@ -4,7 +4,7 @@ Manage sched-ext (SCX) schedulers from a clean Qt6 desktop app.
 
 [![Build](https://github.com/MadGoatHaz/scx-manager/actions/workflows/build.yml/badge.svg)](https://github.com/MadGoatHaz/scx-manager/actions/workflows/build.yml)
 [![Checks](https://github.com/MadGoatHaz/scx-manager/actions/workflows/checks.yml/badge.svg)](https://github.com/MadGoatHaz/scx-manager/actions/workflows/checks.yml)
-[![AUR version](https://img.shields.io/aur/v/scx-manager.svg)](https://aur.archlinux.org/packages/scx-manager)
+[![AUR version](https://img.shields.io/aur/version/scx-manager.svg)](https://aur.archlinux.org/packages/scx-manager)
 [![AUR version](https://img.shields.io/badge/AUR-scx--manager--bin--1.15.12--1-blue.svg)](https://aur.archlinux.org/packages/scx-manager-bin)
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue)](LICENSE)
 
