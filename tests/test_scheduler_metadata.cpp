@@ -47,17 +47,21 @@ int main() {
     // 1. Resource present and parses.
     check(metadata.isValid(), "metadata resource loads and parses (isValid)");
 
-    // 2. Full scheduler set and the six UI-gating names.
+    // 2. Full scheduler set and the five UI-gating names.
     check(metadata.schedulerCount() >= 13, "schedulerCount() >= 13");
+    // UI-gating set == `supported_scheds` in src/schedext-window-internal.cpp (profile
+    // dropdown visibility). scx_cake was removed from it upstream in v1.16.0 (eb0d965);
+    // its catalog entry is retained and asserted separately below.
     const QStringList gating = {"scx_bpfland",
                                "scx_lavd",
                                "scx_p2dq",
                                "scx_tickless",
-                               "scx_cosmos",
-                               "scx_cake"};
+                               "scx_cosmos"};
     for (const QString &name : gating) {
         check(metadata.hasScheduler(name), QStringLiteral("hasScheduler(%1)").arg(name));
     }
+    check(metadata.hasScheduler("scx_cake"),
+          "hasScheduler(scx_cake) — catalog entry retained (info card), no longer UI-gated");
 
     // 3. Sample scheduler fields are populated.
     const scxctl::SchedulerInfo lavd = metadata.scheduler("scx_lavd");
@@ -87,6 +91,11 @@ int main() {
     check(generic.found && !generic.description.isEmpty(), "profile(Gaming) generic fallback available");
     check(specific.found && !specific.description.isEmpty() && specific.description != generic.description,
           "profile(Gaming, scx_lavd) resolves its byScheduler override");
+    // scx_cake's byScheduler overrides were removed upstream in v1.16.0 (eb0d965): its
+    // profile lookups now fall back to the generic description (no dead overrides).
+    const scxctl::ProfileInfo cakeGaming = metadata.profile("Gaming", "scx_cake");
+    check(cakeGaming.found && cakeGaming.description == generic.description,
+          "profile(Gaming, scx_cake) has no byScheduler override (falls back to generic)");
 
     // 6. Unknown profile falls back gracefully (found=false, empty description).
     check(!metadata.profile("Nonexistent", "scx_lavd").found, "profile(Nonexistent, scx_lavd).found == false");
