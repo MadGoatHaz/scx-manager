@@ -18,9 +18,9 @@
 
 #pragma once
 
+#include <QHash>
 #include <QString>
 #include <QStringList>
-#include <QHash>
 
 namespace scxctl {
 
@@ -39,21 +39,21 @@ struct ProfileInfo {
 };
 
 class SchedulerMetadata {
-public:
+ public:
     // Loads and parses ":/scheduler-metadata.json" from the Qt resource system.
     // Safe to call once; if the resource is missing or invalid, isValid() returns false
     // and all lookups return found=false (graceful fallback, never crashes).
     SchedulerMetadata();
 
-    bool isValid() const;
-    bool hasScheduler(const QString &name) const;
-    SchedulerInfo scheduler(const QString &name) const;  // found=false if not listed
-    ProfileInfo profile(const QString &name, const QString &activeScheduler) const;  // found=false if not listed
+    [[nodiscard]] bool isValid() const;
+    [[nodiscard]] bool hasScheduler(const QString& name) const;
+    [[nodiscard]] SchedulerInfo scheduler(const QString& name) const;                              // found=false if not listed
+    [[nodiscard]] ProfileInfo profile(const QString& name, const QString& activeScheduler) const;  // found=false if not listed
 
-    int schedulerCount() const;
-    int profileCount() const;
+    [[nodiscard]] int schedulerCount() const;
+    [[nodiscard]] int profileCount() const;
 
-private:
+ private:
     struct ProfileEntry {
         QString description;
         QHash<QString, QString> byScheduler;
