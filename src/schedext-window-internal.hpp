@@ -21,7 +21,7 @@
 
 #include "schedext-window.hpp"
 
-#if defined(__clang__)
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-conversion"
 #pragma clang diagnostic ignored "-Wfloat-conversion"
@@ -29,7 +29,7 @@
 #pragma clang diagnostic ignored "-Wimplicit-int-float-conversion"
 #pragma clang diagnostic ignored "-Wdeprecated-enum-enum-conversion"
 #pragma clang diagnostic ignored "-Wshorten-64-to-32"
-#elif defined(__GNUC__)
+#elifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wuseless-cast"
 #pragma GCC diagnostic ignored "-Wsign-conversion"
@@ -55,9 +55,9 @@
 #include <QTimer>
 #include <QWidget>
 
-#if defined(__clang__)
+#ifdef __clang__
 #pragma clang diagnostic pop
-#elif defined(__GNUC__)
+#elifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
 
@@ -82,18 +82,18 @@ inline constexpr int kInfoCardFixedHeight = 263;
 /// Live handles into the widgets built inside scheduler_info_card.
 /// Widgets stay parented to the card; the panel only carries pointers.
 struct InfoPanel {
-    QLabel* title = nullptr;             // info_sched_title
-    QLabel* tagline = nullptr;           // info_sched_tagline
-    QLabel* summary = nullptr;           // info_sched_summary
-    QWidget* hw_row = nullptr;           // info_hw_row (wrapping chip container)
-    QWidget* wl_row = nullptr;           // info_wl_row (wrapping chip container)
-    QWidget* divider = nullptr;          // info_divider
+    QLabel* title            = nullptr;  // info_sched_title
+    QLabel* tagline          = nullptr;  // info_sched_tagline
+    QLabel* summary          = nullptr;  // info_sched_summary
+    QWidget* hw_row          = nullptr;  // info_hw_row (wrapping chip container)
+    QWidget* wl_row          = nullptr;  // info_wl_row (wrapping chip container)
+    QWidget* divider         = nullptr;  // info_divider
     QWidget* profile_section = nullptr;  // info_profile_section
-    QLabel* profile_name = nullptr;      // info_profile_name
-    QLabel* profile_desc = nullptr;      // info_profile_desc
-    QLabel* fallback = nullptr;          // info_fallback
+    QLabel* profile_name     = nullptr;  // info_profile_name
+    QLabel* profile_desc     = nullptr;  // info_profile_desc
+    QLabel* fallback         = nullptr;  // info_fallback
 
-    bool ready() const noexcept { return title != nullptr; }
+    [[nodiscard]] bool ready() const noexcept { return title != nullptr; }
 };
 
 /// Builds the card's internal content (title, tagline, summary, hardware /
@@ -117,7 +117,7 @@ class SchedExtWindow final : public QMainWindow {
     Q_DISABLE_COPY_MOVE(SchedExtWindow)
  public:
     explicit SchedExtWindow(QWidget* parent = nullptr);
-    ~SchedExtWindow() = default;
+    ~SchedExtWindow() override = default;
 
  protected:
     void closeEvent(QCloseEvent* event) override;
@@ -139,7 +139,7 @@ class SchedExtWindow final : public QMainWindow {
 
     const std::string_view m_config_path{"/etc/scx_loader.toml"};
     scx::loader::ConfigPtr m_scx_config;
-    std::vector<std::string> m_previously_set_options{};
+    std::vector<std::string> m_previously_set_options;
     std::unique_ptr<Ui::SchedExtWindow> m_ui = std::make_unique<Ui::SchedExtWindow>();
     QTimer* m_sched_timer                    = nullptr;
 
