@@ -16,6 +16,6 @@ pkgbase = scx-manager
 	conflicts = scx-manager-git
 	conflicts = scx-manager-bin
 	source = https://github.com/MadGoatHaz/scx-manager/releases/download/v1.17.0/scx-manager-1.17.0.tar.gz
-	sha256sums = PENDING_BACKFILL
+	sha256sums = 08d28065a66fd9366bbeafaa1f685c13e51bb5bf5850d72d736279776dfb91a6
 
 pkgname = scx-manager
