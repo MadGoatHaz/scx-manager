@@ -28,11 +28,12 @@
 #include <ranges>       // for ranges::*
 #include <string>       // for string
 #include <string_view>  // for string_view
+#include <utility>      // for cmp_greater_equal
 
-#if defined(__clang__)
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wold-style-cast"
-#elif defined(__GNUC__)
+#elifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wnull-dereference"
 #pragma GCC diagnostic ignored "-Wuseless-cast"
@@ -52,9 +53,9 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-#if defined(__clang__)
+#ifdef __clang__
 #pragma clang diagnostic pop
-#elif defined(__GNUC__)
+#elifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
 
@@ -134,13 +135,17 @@ namespace {
 class FlowLayout final : public QLayout {
  public:
     explicit FlowLayout(int h_spacing = 6, int v_spacing = 6)
-      : QLayout(), m_h_spacing(h_spacing), m_v_spacing(v_spacing) {}
+      : m_h_spacing(h_spacing), m_v_spacing(v_spacing) { }
 
-    ~FlowLayout() override = default;
+    ~FlowLayout() override                   = default;
+    FlowLayout(const FlowLayout&)            = delete;
+    FlowLayout& operator=(const FlowLayout&) = delete;
+    FlowLayout(FlowLayout&&)                 = delete;
+    FlowLayout& operator=(FlowLayout&&)      = delete;
 
     void addItem(QLayoutItem* item) override { m_items.push_back(item); }
 
-    int count() const override { return static_cast<int>(m_items.size()); }
+    [[nodiscard]] int count() const override { return static_cast<int>(m_items.size()); }
 
     // Marked pure: const, no I/O, no allocation, only reads the (const) item
     // list via `this`, so it has no observable side effects. The bounds check
@@ -148,26 +153,26 @@ class FlowLayout final : public QLayout {
     // _GLIBCXX_ASSERTIONS abort path is unreachable here). This suppresses
     // -Wsuggest-attribute=pure in Release builds compiled with makepkg
     // CXXFLAGS (-Wp,-D_GLIBCXX_ASSERTIONS).
-    QLayoutItem* itemAt(int index) const override Q_DECL_PURE_FUNCTION {
-        if (index < 0 || index >= static_cast<int>(m_items.size())) {
+    [[nodiscard]] QLayoutItem* itemAt(int index) const override Q_DECL_PURE_FUNCTION {
+        if (index < 0 || std::cmp_greater_equal(index, m_items.size())) {
             return nullptr;
         }
-        return m_items[static_cast<std::size_t>(index)];
+        return m_items.at(static_cast<std::size_t>(index));
     }
 
     QLayoutItem* takeAt(int index) override {
-        if (index < 0 || index >= static_cast<int>(m_items.size())) {
+        if (index < 0 || std::cmp_greater_equal(index, m_items.size())) {
             return nullptr;
         }
-        QLayoutItem* item = m_items[static_cast<std::size_t>(index)];
-        m_items.erase(m_items.begin() + static_cast<std::size_t>(index));
+        QLayoutItem* item = m_items.at(static_cast<std::size_t>(index));
+        m_items.erase(m_items.begin() + index);
         return item;
     }
 
-    bool hasHeightForWidth() const override { return true; }
-    int heightForWidth(int width) const override { return compute_height(width); }
+    [[nodiscard]] bool hasHeightForWidth() const override { return true; }
+    [[nodiscard]] int heightForWidth(int width) const override { return compute_height(width); }
 
-    QSize minimumSize() const override {
+    [[nodiscard]] QSize minimumSize() const override {
         QSize size;
         for (const QLayoutItem* item : m_items) {
             size = size.expandedTo(item->minimumSize());
@@ -175,12 +180,12 @@ class FlowLayout final : public QLayout {
         return size;
     }
 
-    QSize sizeHint() const override { return minimumSize(); }
+    [[nodiscard]] QSize sizeHint() const override { return minimumSize(); }
 
     void setGeometry(const QRect& rect) override { do_layout(rect, true); }
 
  private:
-    auto compute_height(int width) const -> int {
+    [[nodiscard]] auto compute_height(int width) const -> int {
         if (m_items.empty()) {
             return 0;
         }
@@ -203,16 +208,16 @@ class FlowLayout final : public QLayout {
     }
 
     void do_layout(const QRect& rect, bool save) {
-        int left  = 0;
-        int top   = 0;
-        int x     = left;
-        int y     = top;
-        int row_h = 0;
+        const int left = 0;
+        const int top  = 0;
+        int x          = left;
+        int y          = top;
+        int row_h      = 0;
         for (QLayoutItem* item : m_items) {
             const int item_w = item->sizeHint().width();
             if (x > left && x + item_w > rect.right()) {
                 y += row_h + m_v_spacing;
-                x = left;
+                x     = left;
                 row_h = 0;
             }
             if (save) {
@@ -228,14 +233,17 @@ class FlowLayout final : public QLayout {
     int m_v_spacing = 0;
 };
 
-auto make_card_font(const QFont& base, bool bold, bool italic, double delta_point) -> QFont {
+auto make_card_font(const QFont& base, bool bold, bool italic, float delta_point) -> QFont {
     QFont font(base);
     font.setBold(bold);
     font.setItalic(italic);
     // Skip the delta for pixel-sized fonts (pointSizeF() == -1) so we never
     // end up with a nonsensical point size.
     if (font.pointSizeF() > 0.0) {
-        font.setPointSizeF(font.pointSizeF() + delta_point);
+        // pointSizeF() already returns qreal; promote the float delta explicitly
+        // (call sites pass exactly representable literals) so the addition stays in
+        // double precision with no implicit float -> double conversion.
+        font.setPointSizeF(font.pointSizeF() + static_cast<qreal>(delta_point));
     }
     return font;
 }
@@ -248,7 +256,7 @@ auto rebuild_chip_row(QWidget* row, const QStringList& labels) -> void {
         delete row->layout();
     }
     const auto old_chips = row->findChildren<QLabel*>(QString{}, Qt::FindDirectChildrenOnly);
-    for (QLabel* chip : old_chips) {
+    for (const QLabel* chip : old_chips) {
         delete chip;
     }
     auto* flow = new FlowLayout();
@@ -325,7 +333,7 @@ SCXINFO_EXPORT auto build_info_card(QFrame* card) -> InfoPanel {
     profile_body->setContentsMargins(0, 0, 0, 0);
     profile_body->setSpacing(4);
 
-    auto* header_row   = new QWidget(panel.profile_section);
+    auto* header_row    = new QWidget(panel.profile_section);
     auto* header_layout = new QHBoxLayout(header_row);
     header_layout->setContentsMargins(0, 0, 0, 0);
     header_layout->setSpacing(6);
@@ -586,7 +594,7 @@ void SchedExtWindow::update_info_panel() noexcept {
 void SchedExtWindow::update_profile_section() noexcept {
     const bool combo_visible = m_ui->schedext_profile_combo_box->isVisible();
     const auto& profile_name = m_ui->schedext_profile_combo_box->currentText();
-    const auto& info = m_metadata.profile(profile_name, m_ui->schedext_combo_box->currentText());
+    const auto& info         = m_metadata.profile(profile_name, m_ui->schedext_combo_box->currentText());
     apply_profile_info(m_info_panel, profile_name, info,
         combo_visible && m_metadata.isValid() && info.found && !info.description.isEmpty());
 }
