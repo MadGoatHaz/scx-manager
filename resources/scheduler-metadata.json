@@ -206,7 +206,6 @@
             "byScheduler": {
                 "scx_lavd": "Enables LAVD's performance mode with a pinned 500 us slice for steady frame pacing.",
                 "scx_bpfland": "Runs BPFland in performance mode with wakeup preemption for responsive interactive threads.",
-                "scx_cake": "Selects CAKE's gaming profile for interactive frame delivery.",
                 "scx_cosmos": "Raises Cosmos' slice to 700 us for smoother interactive performance.",
                 "scx_p2dq": "Enables P2DQ task slicing and performance scheduling mode for low-latency dispatch.",
                 "scx_tickless": "Applies Tickless' non-standard gaming frequency and slice settings. Not recommended for interactive desktop use."
@@ -217,7 +216,6 @@
             "byScheduler": {
                 "scx_lavd": "Switches LAVD to powersave mode with a pinned 500 us slice.",
                 "scx_bpfland": "Runs BPFland in powersave mode with a 20000 us slice and lowered interactivity thresholds.",
-                "scx_cake": "Selects CAKE's battery profile for energy-efficient dispatch.",
                 "scx_cosmos": "Runs Cosmos in powersave CPU mode.",
                 "scx_p2dq": "Switches P2DQ to efficiency scheduling mode.",
                 "scx_tickless": "Lowers Tickless' housekeeping cadence to reduce wakeups and energy use."
@@ -228,7 +226,6 @@
             "byScheduler": {
                 "scx_lavd": "Enables LAVD's performance mode with a pinned 500 us slice for minimal latency.",
                 "scx_bpfland": "Runs BPFland in performance mode with wakeup preemption.",
-                "scx_cake": "Selects CAKE's esports profile for minimal sojourn latency.",
                 "scx_cosmos": "Raises Cosmos' slice to 700 us with performance mode and wakeup preemption.",
                 "scx_p2dq": "Enables P2DQ yield-on-idle and task-slice flags for fast dispatch.",
                 "scx_tickless": "Applies Tickless' lower-latency frequency and slice settings."
