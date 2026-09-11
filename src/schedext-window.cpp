@@ -40,7 +40,7 @@ void SchedExtWindow::hide() noexcept {
     m_impl->hide();
 }
 
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic push
 // isVisible() and nativeWidget() read the m_impl member, whose referent's
 // visibility is mutable state; they are not pure in the "depends only on
@@ -56,7 +56,7 @@ QWidget* SchedExtWindow::nativeWidget() noexcept {
     return m_impl;
 }
 
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
 
