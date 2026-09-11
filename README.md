@@ -19,7 +19,7 @@ scx-manager lists the sched-ext schedulers that the running `scx_loader` daemon 
 - **Five tuning profiles** — Auto, Gaming, Powersave, Lowlatency, and Server, each applying per-scheduler tuning on top of the selected scheduler (see [Profiles](#profiles)).
 - **Service & config management** — enable/disable the `scx_loader` daemon and manage its configuration (`/etc/scx_loader.toml`) through `pkexec` elevation.
 - **Graceful degradation** — if the `scx_loader` daemon is absent, the app shows a critical dialog and stays alive instead of failing.
-- **Localized UI** — 11 Qt Linguist `.ts` catalogs under `lang/`.
+- **Localized UI** — 14 Qt Linguist `.ts` catalogs under `lang/`.
 - **Desktop integration** — `scx-manager.desktop` entry + hicolor scalable SVG icon.
 - **Warning-clean build** — from-scratch Release build with zero compiler warnings.
 
@@ -46,6 +46,8 @@ The visible set is what **`scx-scheds`** has installed ∩ what the loaded `scx_
 | `scx_pandemonium` | Pandemonium (Behavioral Interconnect Scheduler) | Advanced interconnect-aware scheduler with CoDel latency protection. | Gaming, Heavy Multitasking, Throughput-Compilation, Audio/Multimedia |
 | `scx_rustland` | Rustland (User-Space Reference Scheduler) | Educational user-space scheduling engine built in Rust. | Research/Experimental, General Desktop |
 | `scx_rusty` | Rusty (Multi-Domain LLC Load Balancer) | Hybrid round-robin cache domain scheduling with user-space balancing. | Server/Cloud, Throughput-Compilation |
+
+> Note: `scx_cake`'s per-profile tuning presets were removed upstream in v1.16.0 — the app still lists it and renders the info card whenever your `scx_loader` daemon reports it, but the profile dropdown is offered only for the five profile-aware schedulers (`scx_bpfland`, `scx_cosmos`, `scx_lavd`, `scx_p2dq`, `scx_tickless`) and is hidden for `scx_cake`.
 
 More schedulers are available across the [sched-ext](https://github.com/sched-ext/scx) ecosystem.
 
@@ -165,13 +167,13 @@ ctest --test-dir build
 
 scx-manager is licensed under the [GNU General Public License v3.0 or later](LICENSE) — the full license text is in `LICENSE`.
 
-scx-manager is a fork of the upstream [CachyOS scx-manager](https://github.com/CachyOS/scx-manager) project (GitHub fork, this repository) and a distribution-agnostic rebrand and port of it. The pre-fork standalone mirror — same history, and the v1.15.12 release as origin of record — is archived at [MadGoatHaz/scx-manager-legacy](https://github.com/MadGoatHaz/scx-manager-legacy).
+**Fork** — this repository is a fork of the upstream [CachyOS scx-manager](https://github.com/CachyOS/scx-manager) project (fork point `af37c3e` = upstream v1.15.12, 2026-07-25). What the fork changes: de-branding (app, desktop entry, icon, install paths), a distribution-agnostic port, an embedded scheduler metadata catalog (`resources/scheduler-metadata.json`) with a data-driven info card, AUR packaging (three flavors under `packaging/`), and a release pipeline (workflow-built prebuilt + git-archive source tarball).
 
-**History & attribution** — this repository preserves the complete upstream git history: every original commit and author attribution from CachyOS/scx-manager is intact, and the upstream copyright and provenance headers inside the source files are deliberately retained (not stripped during de-branding). They are attribution, not branding.
+**Relationship** — community-maintained, and **not** affiliated with, sponsored by, or endorsed by CachyOS. Upstream retains copyright over its original contributions; all modifications in this fork are released under the same GPL-3.0-or-later license. The complete upstream git history is preserved — original commits, author attributions, and the upstream copyright/provenance headers inside the source files are attribution, not branding, and are deliberately retained (not stripped during de-branding).
 
-**Relationship** — this project is community-maintained and is **not** affiliated with, sponsored by, or endorsed by CachyOS. Upstream retains copyright over its original contributions; all modifications in this repository are released under the same GPL-3.0-or-later license.
+**Credits** — the original code is the work of Vladislav Nepogodin and the upstream [CachyOS/scx-manager](https://github.com/CachyOS/scx-manager) project; the fork's modifications are by its maintainer. Upstream authors remain visible in `git log` and GitHub's contributors list through the preserved history — that attribution belongs to the original project, not to this one.
 
-**Credits** — the original code is the work of Vladislav Nepogodin and the upstream [CachyOS/scx-manager](https://github.com/CachyOS/scx-manager) project, on which this repository is based. This project's modifications are by its maintainer. Upstream authors appear in `git log` (and GitHub's contributors list) because the complete upstream history is preserved — that attribution belongs to the original project, not to this one.
+**Origin of record** — the pre-fork standalone mirror is archived as [MadGoatHaz/scx-manager-legacy](https://github.com/MadGoatHaz/scx-manager-legacy); it is the origin of record for the v1.15.12 release.
 
 ## Layout
 
