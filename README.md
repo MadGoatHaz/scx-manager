@@ -163,18 +163,6 @@ ctest --test-dir build
 
 **Libraries:** Qt6 (GUI), fmt (string formatting, via CPM), and zbus / `scx_loader` (D-Bus, via Corrosion/cxx).
 
-## License & provenance
-
-scx-manager is licensed under the [GNU General Public License v3.0 or later](LICENSE) — the full license text is in `LICENSE`.
-
-**Fork** — this repository is a fork of the upstream [CachyOS scx-manager](https://github.com/CachyOS/scx-manager) project (fork point `af37c3e` = upstream v1.15.12, 2026-07-25). What the fork changes: de-branding (app, desktop entry, icon, install paths), a distribution-agnostic port, an embedded scheduler metadata catalog (`resources/scheduler-metadata.json`) with a data-driven info card, AUR packaging (three flavors under `packaging/`), and a release pipeline (workflow-built prebuilt + git-archive source tarball).
-
-**Relationship** — community-maintained, and **not** affiliated with, sponsored by, or endorsed by CachyOS. Upstream retains copyright over its original contributions; all modifications in this fork are released under the same GPL-3.0-or-later license. The complete upstream git history is preserved — original commits, author attributions, and the upstream copyright/provenance headers inside the source files are attribution, not branding, and are deliberately retained (not stripped during de-branding).
-
-**Credits** — the original code is the work of Vladislav Nepogodin and the upstream [CachyOS/scx-manager](https://github.com/CachyOS/scx-manager) project; the fork's modifications are by its maintainer. Upstream authors remain visible in `git log` and GitHub's contributors list through the preserved history — that attribution belongs to the original project, not to this one.
-
-**Origin of record** — the pre-fork standalone mirror is archived as [MadGoatHaz/scx-manager-legacy](https://github.com/MadGoatHaz/scx-manager-legacy); it is the origin of record for the v1.15.12 release.
-
 ## Layout
 
 - `src/` — C++23 / Qt6 application sources
