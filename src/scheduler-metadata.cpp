@@ -62,22 +62,22 @@ SCXMETADATA_EXPORT SchedulerMetadata::SchedulerMetadata() {
     const QJsonObject root = document.object();
 
     const QJsonObject schedulers = root.value(QStringLiteral("schedulers")).toObject();
-    for (const QString &name : schedulers.keys()) {
+    for (const QString& name : schedulers.keys()) {
         const QJsonObject entry = schedulers.value(name).toObject();
 
         SchedulerInfo info;
-        info.found = true;
-        info.title = entry.value(QStringLiteral("title")).toString();
+        info.found   = true;
+        info.title   = entry.value(QStringLiteral("title")).toString();
         info.tagline = entry.value(QStringLiteral("tagline")).toString();
         info.summary = entry.value(QStringLiteral("summary")).toString();
 
         const QJsonArray hardware = entry.value(QStringLiteral("hardware")).toArray();
-        for (const QJsonValue &value : hardware) {
+        for (const auto& value : hardware) {
             info.hardware.append(value.toString());
         }
 
         const QJsonArray workloads = entry.value(QStringLiteral("workloads")).toArray();
-        for (const QJsonValue &value : workloads) {
+        for (const auto& value : workloads) {
             info.workloads.append(value.toString());
         }
 
@@ -85,14 +85,14 @@ SCXMETADATA_EXPORT SchedulerMetadata::SchedulerMetadata() {
     }
 
     const QJsonObject profiles = root.value(QStringLiteral("profiles")).toObject();
-    for (const QString &name : profiles.keys()) {
+    for (const QString& name : profiles.keys()) {
         const QJsonObject entry = profiles.value(name).toObject();
 
         ProfileEntry profile;
         profile.description = entry.value(QStringLiteral("description")).toString();
 
         const QJsonObject by_scheduler = entry.value(QStringLiteral("byScheduler")).toObject();
-        for (const QString &scheduler : by_scheduler.keys()) {
+        for (const QString& scheduler : by_scheduler.keys()) {
             profile.byScheduler.insert(scheduler, by_scheduler.value(scheduler).toString());
         }
 
@@ -106,15 +106,15 @@ SCXMETADATA_EXPORT bool SchedulerMetadata::isValid() const {
     return m_valid;
 }
 
-SCXMETADATA_EXPORT bool SchedulerMetadata::hasScheduler(const QString &name) const {
+SCXMETADATA_EXPORT bool SchedulerMetadata::hasScheduler(const QString& name) const {
     return m_schedulers.contains(name);
 }
 
-SCXMETADATA_EXPORT SchedulerInfo SchedulerMetadata::scheduler(const QString &name) const {
+SCXMETADATA_EXPORT SchedulerInfo SchedulerMetadata::scheduler(const QString& name) const {
     return m_schedulers.value(name);
 }
 
-SCXMETADATA_EXPORT ProfileInfo SchedulerMetadata::profile(const QString &name, const QString &activeScheduler) const {
+SCXMETADATA_EXPORT ProfileInfo SchedulerMetadata::profile(const QString& name, const QString& activeScheduler) const {
     ProfileInfo info;
 
     const auto it = m_profiles.constFind(name);
@@ -122,7 +122,7 @@ SCXMETADATA_EXPORT ProfileInfo SchedulerMetadata::profile(const QString &name, c
         return info;
     }
 
-    info.found = true;
+    info.found             = true;
     const auto override_it = it->byScheduler.constFind(activeScheduler);
     if (override_it != it->byScheduler.constEnd()) {
         info.description = override_it.value();
